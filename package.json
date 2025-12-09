@@ -1,0 +1,61 @@
+{
+  "name": "envx",
+  "version": "1.0.0",
+  "description": "Secure encrypted .env replacement using XChaCha20-Poly1305 and Argon2id",
+  "license": "MIT",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "envx": "dist/cli/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/semicolon-systems/envx.git"
+  },
+  "bugs": {
+    "url": "https://github.com/semicolon-systems/envx/issues"
+  },
+  "homepage": "https://github.com/semicolon-systems/envx#readme",
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "lint": "eslint . --ext .ts",
+    "format": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "prepare": "npm run build"
+  },
+  "files": [
+    "dist",
+    "src/format/schema.json"
+  ],
+  "keywords": [
+    "env",
+    "encryption",
+    "xchacha20",
+    "argon2id",
+    "scrypt",
+    "security",
+    "cli"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^2.1.1",
+    "argon2": "^0.31.2",
+    "commander": "^12.1.0",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.4",
+    "@typescript-eslint/eslint-plugin": "^7.16.1",
+    "@typescript-eslint/parser": "^7.16.1",
+    "eslint": "^8.57.1",
+    "prettier": "^3.3.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.2"
+  }
+}

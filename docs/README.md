@@ -1,15 +1,16 @@
 # envx
 
 [![CI](https://github.com/semicolon-systems/envx/workflows/CI/badge.svg)](https://github.com/semicolon-systems/envx/actions)
+[![npm version](https://img.shields.io/npm/v/envx.svg)](https://www.npmjs.com/package/envx)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **Secure encrypted `.env` replacement for Git**
 
-envx lets you commit encrypted secrets safely into version control using AES-256-GCM authenticated encryption and Argon2id key derivation.
+envx lets you commit encrypted secrets safely into version control using XChaCha20-Poly1305 authenticated encryption and Argon2id key derivation.
 
 ## Features
 
-- 🔐 **AES-256-GCM**: Authenticated encryption with per-value nonces
+- 🔐 **XChaCha20-Poly1305**: AEAD authenticated encryption with per-value nonces
 - 🔑 **Argon2id KDF**: Modern password-based key derivation (with scrypt fallback)
 - 📦 **Library + CLI**: Use as npm module or command-line tool
 - 🎯 **Zero-disk plaintext**: Secrets never touch disk unless explicitly written
@@ -41,7 +42,7 @@ envx init
 envx init --mode password
 ```
 
-This creates `.envx.key` (keep this secret and out of version control).
+This creates `.envx.key` (or your custom key path).
 
 ### Encrypt
 
@@ -73,13 +74,13 @@ envx export-vars .envx
 envx verify .envx
 
 # Validate against schema
-envx check .envx --schema .env.schema.json
+envx check .env.schema.json --schema schema.json
 ```
 
 ## Library Usage
 
 ```typescript
-import { Envx } from 'envx';
+import { Envx, deriveKey, encryptValues, decryptValues } from 'envx';
 
 const envx = new Envx('.envx.key');
 
@@ -100,30 +101,34 @@ const { valid } = envx.verify('.envx');
 
 ## Security Model
 
+### Threat Model
+
+✅ **Protects against:**
+- Accidental exposure of secrets in Git history
+- Unauthorized access if repository is compromised
+- Dictionary attacks (via Argon2id)
+- Tampering (via authenticated encryption)
+
+❌ **Does not protect against:**
+- Key compromise
+- Memory attacks against running processes
+- Side-channel attacks
+- Keylogging during input
+
 ### Cryptography
 
-**Encryption:** AES-256-GCM
+**Encryption:** XChaCha20-Poly1305
 - AEAD cipher with 256-bit keys
-- 12-byte random nonce per value
-- 16-byte authentication tag
+- 24-byte random nonce per value
 - Detects ciphertext tampering
 
 **Key Derivation:** Argon2id (primary) / scrypt (fallback)
 - Argon2id: 65536 KB memory, 3 time cost, 1 parallelism
 - scrypt: N=2^15, r=8, p=1
-- Random 16-byte salt per key
 
-### What envx protects against:
-- ✅ Accidental exposure of secrets in Git history
-- ✅ Unauthorized access if repository is compromised
-- ✅ Dictionary attacks (via Argon2id)
-- ✅ Tampering (via authenticated encryption)
-
-### What envx does NOT protect against:
-- ❌ Key compromise
-- ❌ Memory attacks against running processes
-- ❌ Side-channel attacks
-- ❌ Keylogging during input
+**Storage:** JSON format with Base64 encoding
+- Supports versioning for future algorithm changes
+- Explicit nonce per key for verification
 
 ## .envx Format
 
@@ -174,26 +179,52 @@ jobs:
         run: npm run build
 ```
 
-## CLI Commands
+## CLI Reference
 
-| Command | Description |
-|---------|-------------|
-| `envx init [--mode random\|password]` | Initialize new project with key |
-| `envx encrypt <file> [--output path]` | Encrypt .env file |
-| `envx decrypt <file>` | Decrypt and print to stdout |
-| `envx show <file>` | Show decrypted values (JSON) |
-| `envx run -- <command>` | Run command with decrypted env |
-| `envx rotate <new-key>` | Rotate to new encryption key |
-| `envx verify <file>` | Verify file integrity |
-| `envx check <file> [--schema path]` | Validate against schema |
-| `envx export-vars <file>` | Export as KEY=VALUE |
+### envx init
+```bash
+envx init [--mode random|password] [--key path]
+```
 
-## Documentation
+### envx encrypt
+```bash
+envx encrypt <file> [--output path] [--key path]
+```
 
-- [Security Policy](./docs/SECURITY.md) - Threat model and best practices
-- [Contributing](./docs/CONTRIBUTING.md) - Development guide
-- [Architecture](./docs/ARCHITECTURE.md) - Technical design
-- [Changelog](./docs/CHANGELOG.md) - Version history
+### envx decrypt
+```bash
+envx decrypt <file> [--key path] [--write]
+```
+
+### envx show
+```bash
+envx show <file> [--key path]
+```
+
+### envx run
+```bash
+envx run [--key path] [--envx path] -- <command...>
+```
+
+### envx rotate
+```bash
+envx rotate <new-key> [--key path] [--envx path]
+```
+
+### envx verify
+```bash
+envx verify <file>
+```
+
+### envx check
+```bash
+envx check <file> [--schema path]
+```
+
+### envx export-vars
+```bash
+envx export-vars <file> [--key path]
+```
 
 ## Troubleshooting
 
@@ -201,6 +232,9 @@ jobs:
 ```bash
 # Generate new key
 envx init
+
+# Or restore from backup
+cp .envx.key.backup .envx.key
 ```
 
 **Q: "Failed to decrypt - MAC verification failed"**
@@ -209,12 +243,14 @@ envx init
 - Verify file: `envx verify .envx`
 
 **Q: Can I use password-based encryption?**
-
 Yes: `envx init --mode password` derives key from password using Argon2id.
+
+**Q: Memory wiping guarantees?**
+We use `Buffer.fill(0)` which is not guaranteed against all attacks. For highly sensitive scenarios, consider HSM-based key storage.
 
 ## Contributing
 
-Contributions are welcome! Please see [CONTRIBUTING.md](./docs/CONTRIBUTING.md) for guidelines.
+See [CONTRIBUTING.md](./docs/CONTRIBUTING.md)
 
 ## License
 
@@ -222,4 +258,4 @@ MIT © Semicolon Systems
 
 ## Security Contact
 
-Found a vulnerability? See [SECURITY.md](./docs/SECURITY.md) for reporting guidelines.
+Found a vulnerability? Email security@semicolon-systems.dev (or see [SECURITY.md](./docs/SECURITY.md))
