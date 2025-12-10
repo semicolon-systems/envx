@@ -1,6 +1,6 @@
 {
   "name": "envx-secure",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Production-grade encrypted environment variable management for Git workflows. Safely commit secrets to version control using AES-256-GCM encryption and Argon2id key derivation.",
   "license": "MIT",
   "author": "DJ",
