@@ -45,7 +45,7 @@ export type NonceMap = Record<string, string>;
  */
 export interface EnvxFile {
   version: 1;
-  cipher: 'xchacha20-poly1305';
+  cipher: 'aes-256-gcm';
   kdf: {
     type: 'argon2id' | 'scrypt' | 'none';
     salt?: string;

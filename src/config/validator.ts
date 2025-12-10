@@ -6,7 +6,7 @@
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import schema from './schema.json';
-import { ValidationError } from '../logging/errors';
+import { ValidationError } from '../utils/errors';
 import type { EnvxFile } from '../types';
 
 /**
@@ -22,7 +22,7 @@ export function validateEnvxFile(data: unknown): EnvxFile {
 
   if (!validate(data)) {
     const errors = (validate.errors ?? []).map((e) => `${e.instancePath} ${e.message ?? ''}`).join('; ');
-    throw new ValidationError('Invalid envx file format', { errors });
+    throw new ValidationError(`Invalid envx file format: ${errors}`);
   }
 
   return data as EnvxFile;

@@ -256,6 +256,6 @@ See [CONTRIBUTING.md](./docs/CONTRIBUTING.md)
 
 MIT © Semicolon Systems
 
-## Security
+## Security Contact
 
-Found a vulnerability? See [SECURITY.md](./docs/SECURITY.md) for reporting via GitHub Security Advisories.
+Found a vulnerability? Email security@semicolon-systems.dev (or see [SECURITY.md](./docs/SECURITY.md))

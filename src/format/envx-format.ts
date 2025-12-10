@@ -11,7 +11,7 @@ export type EnvxKdf =
 
 export interface EnvxFile {
   version: 1;
-  cipher: 'xchacha20-poly1305';
+  cipher: 'aes-256-gcm';
   kdf: EnvxKdf;
   nonce_map: Record<string, string>;
   values: Record<string, string>;
@@ -44,7 +44,7 @@ export const validateEnvx = (data: unknown): EnvxFile => {
   if (typed.version !== 1) {
     throw new ValidationError(`Unsupported version ${typed.version}`);
   }
-  if (typed.cipher !== 'xchacha20-poly1305') {
+  if (typed.cipher !== 'aes-256-gcm') {
     throw new ValidationError(`Unsupported cipher ${typed.cipher}`);
   }
   return typed;
@@ -66,6 +66,6 @@ export const buildEnvxFile = (
   payload: Omit<EnvxFile, 'version' | 'cipher'>,
 ): EnvxFile => ({
   version: 1,
-  cipher: 'xchacha20-poly1305',
+  cipher: 'aes-256-gcm',
   ...payload,
 });

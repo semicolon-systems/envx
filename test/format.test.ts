@@ -7,7 +7,7 @@ describe('Format Module', () => {
     it('parses valid envx file', () => {
       const json = JSON.stringify({
         version: 1,
-        cipher: 'xchacha20-poly1305',
+        cipher: 'aes-256-gcm',
         kdf: {
           type: 'argon2id',
           salt: 'base64salt',
@@ -19,13 +19,13 @@ describe('Format Module', () => {
       });
       const result = parseEnvx(json);
       expect(result.version).toBe(1);
-      expect(result.cipher).toBe('xchacha20-poly1305');
+      expect(result.cipher).toBe('aes-256-gcm');
     });
 
     it('rejects missing required fields', () => {
       const json = JSON.stringify({
         version: 1,
-        cipher: 'xchacha20-poly1305',
+        cipher: 'aes-256-gcm',
       });
       expect(() => parseEnvx(json)).toThrow();
     });
@@ -44,7 +44,7 @@ describe('Format Module', () => {
     it('rejects mismatched keys and nonces', () => {
       const json = JSON.stringify({
         version: 1,
-        cipher: 'xchacha20-poly1305',
+        cipher: 'aes-256-gcm',
         kdf: { type: 'argon2id', salt: 'base64salt', params: { memory: 1, time: 1, parallelism: 1 } },
         nonce_map: { KEY1: 'nonce' },
         values: { KEY2: 'cipher' },
@@ -61,7 +61,7 @@ describe('Format Module', () => {
         values: {},
       });
       expect(result.version).toBe(1);
-      expect(result.cipher).toBe('xchacha20-poly1305');
+      expect(result.cipher).toBe('aes-256-gcm');
     });
   });
 });

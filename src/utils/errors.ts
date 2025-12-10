@@ -26,6 +26,13 @@ export class KdfError extends EnvxError {
   }
 }
 
+export class CipherError extends EnvxError {
+  constructor(message: string) {
+    super(message);
+    this.name = 'CipherError';
+  }
+}
+
 export class FileExistsError extends EnvxError {
   constructor(message: string) {
     super(message);

@@ -2,41 +2,41 @@
 
 ## Overview
 
-`envx-secure` is a production-grade encrypted environment variable manager using XChaCha20-Poly1305 encryption with Argon2id key derivation. The codebase follows a modular, domain-driven architecture with clear separation of concerns and comprehensive error handling.
+`envx-secure` is a production-grade encrypted environment variable manager using AES-256-GCM encryption with Argon2id key derivation. The codebase follows a modular, domain-driven architecture with clear separation of concerns and comprehensive error handling.
 
 ## Module Structure
 
 ### Core Modules
 
-#### `src/logging/`
-Structured logging and error handling layer.
-
-- **`logger.ts`**: JSON-structured logging system
-  - Functions: `log()`, convenience functions (`logger.info()`, `logger.warn()`, `logger.error()`)
-  - Features: Timestamp, level, operation, context, never logs secrets
-  - Types: `LogLevel`, `LogContext`, `LogEntry`
+#### `src/utils/`
+Error handling and utility functions.
 
 - **`errors.ts`**: Custom error hierarchy
-  - Base: `EnvxError` with code and metadata
-  - Specialized: `CipherError`, `KdfError`, `ValidationError`, `FileError`, `MissingKeyError`, `DecryptionError`
-  - All errors include metadata for debugging and proper error tracking
+  - Base: `EnvxError`
+  - Specialized: `CipherError`, `KdfError`, `ValidationError`, `DecryptionError`, `MissingKeyError`, `FileExistsError`
+  - All errors extend EnvxError with descriptive messages
+
+- **`memory.ts`**: Secure memory operations
+  - Functions: `wipeBuffer()`, `wipeBuffers()`, `wipeRecord()` - secure buffer clearing
 
 #### `src/crypto/`
 Cryptographic operations for encryption and key derivation.
 
-- **`cipher.ts`**: AES-256-GCM AEAD cipher
-  - Functions: `encryptValue()`, `decryptValue()`
+- **`encrypt.ts`**: AES-256-GCM encryption
+  - Function: `encryptValues()`
   - Features: Per-value random nonces, base64 encoding, authenticated encryption
-  - Errors: `CipherError`, `DecryptionError`
+  - Errors: `DecryptionError`
+
+- **`decrypt.ts`**: AES-256-GCM decryption
+  - Function: `decryptValues()`
+  - Features: Authentication tag verification, nonce-based decryption
+  - Errors: `DecryptionError`
 
 - **`kdf.ts`**: Key derivation functions
   - Functions: `deriveKeyArgon2id()`, `deriveKeyScrypt()`, `deriveKey()`
   - Exports: `DEFAULT_ARGON2_PARAMS`, `DEFAULT_SCRYPT_PARAMS`
   - Types: `Argon2idParams`, `ScryptParams`, `KdfResult`, `KdfMeta`
   - Errors: `KdfError`
-
-- **`memory.ts`**: Secure memory operations
-  - Functions: `wipeBuffer()` - secure buffer clearing
 
 #### `src/config/`
 Configuration management and validation.
@@ -48,7 +48,7 @@ Configuration management and validation.
 
 - **`schema.json`**: JSON Schema for envx file format
   - Version 1 specification
-  - Cipher: xchacha20-poly1305
+  - Cipher: aes-256-gcm
   - KDF: argon2id, scrypt, or none
 
 #### `src/types/`
@@ -66,24 +66,29 @@ Command-line interface.
 
 - **`index.ts`**: Commander.js setup
 - **`commands/`**: Individual commands
-  - `encrypt.ts`: Encrypt .env file to .env.enc
-  - `decrypt.ts`: Decrypt .env.enc to .env
-  - `generate.ts`: Generate random encryption key
-  - `status.ts`: Show encryption status
-  - Additional utility commands
+  - `init.ts`: Initialize project with key (random or password-based)
+  - `encrypt.ts`: Encrypt .env file to .envx
+  - `decrypt.ts`: Decrypt .envx file to stdout
+  - `show.ts`: Display decrypted values (JSON output)
+  - `run.ts`: Execute command with decrypted env vars
+  - `rotate.ts`: Rotate encryption key
+  - `verify.ts`: Verify .envx file integrity
+  - `check.ts`: Validate against JSON schema
+  - `export-vars.ts`: Export as shell variables
 
 #### `src/utils/`
 Utility functions.
 
-- **`format.ts`**: Format and parse .env files
-- **`random.ts`**: Random buffer generation helpers
+- **`errors.ts`**: Error classes (see above)
+- **`memory.ts`**: Secure memory operations (see above)
 
 ### Main Entry Point
 
 **`src/index.ts`**: Public API exports
-- Core functions: `encrypt()`, `decrypt()`, `generateKey()`
-- Types: `EnvxFile`, `EncryptionResult`
-- Logger: `logger`, `LogLevel`, `LogContext`
+- Library: `Envx` class
+- Functions: `encryptValues()`, `decryptValues()`, `deriveKey()`, `deriveKeyArgon2id()`, `deriveKeyScrypt()`
+- Format: `parseEnvx()`, `buildEnvxFile()`
+- Types: `EnvxFile`
 - Errors: All custom error types
 
 ## Data Flow
@@ -110,16 +115,13 @@ EnvxError (Custom Base)
   ├── CipherError (Encryption/decryption)
   ├── KdfError (Key derivation)
   ├── ValidationError (Schema validation)
-  ├── FileError (File I/O)
+  ├── FileExistsError (File already exists)
   ├── MissingKeyError (Missing encryption key)
   └── DecryptionError (Decryption failure)
 ```
 
 ### Error Usage
-All custom errors include:
-- `code`: Machine-readable error identifier
-- `message`: Human-readable description
-- `metadata`: Context object with details (cause, operation, etc.)
+All custom errors extend EnvxError and include descriptive messages.
 
 Example:
 ```typescript
@@ -127,22 +129,10 @@ try {
   await deriveKeyArgon2id(password);
 } catch (e) {
   if (e instanceof KdfError) {
-    logger.error('KDF failed', { error: e.metadata });
+    console.error('KDF failed:', e.message);
   }
 }
 ```
-
-## Logging Strategy
-
-### Log Levels
-- `info`: Normal operations (encryption started, etc.)
-- `warn`: Potentially problematic situations (retries, etc.)
-- `error`: Error conditions with recovery
-
-### Never Logged
-- Passwords
-- Encryption keys
-- Plaintext environment values
 - Full error stacks in production logs
 
 ### Log Example
@@ -191,7 +181,6 @@ try {
 ### Running Tests
 ```bash
 npm test              # Run all tests
-npm run coverage      # Generate coverage report
 npm run lint          # Lint code
 npm run build         # Build TypeScript
 ```
@@ -200,12 +189,11 @@ npm run build         # Build TypeScript
 
 ### Adding New Features
 1. Create new module in appropriate domain folder
-2. Use custom error types from `src/logging/errors.ts`
-3. Use structured logging from `src/logging/logger.ts`
-4. Define types in `src/types/index.ts`
-5. Export from `src/index.ts`
-6. Add tests in `test/` directory
-7. Update ARCHITECTURE.md
+2. Use custom error types from `src/utils/errors.ts`
+3. Define types in `src/types/index.ts`
+4. Export from `src/index.ts`
+5. Add tests in `test/` directory
+6. Update ARCHITECTURE.md
 
 ### Code Style
 - TypeScript strict mode enabled
@@ -218,13 +206,13 @@ npm run build         # Build TypeScript
 ```
 envx-secure/
 ├── src/
-│   ├── logging/           # Logging & error handling layer
-│   │   ├── logger.ts
-│   │   └── errors.ts
-│   ├── crypto/            # Cryptographic operations
-│   │   ├── cipher.ts
-│   │   ├── kdf.ts
+│   ├── utils/             # Error handling & utilities
+│   │   ├── errors.ts
 │   │   └── memory.ts
+│   ├── crypto/            # Cryptographic operations
+│   │   ├── encrypt.ts
+│   │   ├── decrypt.ts
+│   │   └── kdf.ts
 │   ├── config/            # Configuration & validation
 │   │   ├── validator.ts
 │   │   └── schema.json

@@ -1,8 +1,9 @@
 {
   "name": "envx-secure",
-  "version": "1.0.1",
-  "description": "Commit encrypted .env files to Git using AES-256-GCM",
+  "version": "1.0.0",
+  "description": "Production-grade encrypted environment variable management for Git workflows. Safely commit secrets to version control using AES-256-GCM encryption and Argon2id key derivation.",
   "license": "MIT",
+  "author": "DJ",
   "type": "commonjs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -21,27 +22,44 @@
     "build": "tsc --project tsconfig.json",
     "lint": "eslint . --ext .ts",
     "format": "prettier --check .",
+    "format:write": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest watch",
-    "prepare": "npm run build"
+    "test:coverage": "vitest run --coverage",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run lint && npm test && npm run build"
   },
   "files": [
     "dist",
-    "src/format/schema.json"
+    "src/format/schema.json",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "keywords": [
     "env",
     "environment",
-    "secrets",
     "encryption",
+    "secrets",
+    "credentials",
+    "aes-256-gcm",
+    "argon2id",
+    "authenticated-encryption",
     "security",
+    "cryptography",
+    "cli",
     "dotenv",
     "config",
-    "aes-gcm",
-    "argon2"
+    "devops",
+    "ci-cd",
+    "github-actions",
+    "git",
+    "version-control",
+    "typescript"
   ],
   "engines": {
-    "node": ">=18"
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
   },
   "dependencies": {
     "ajv": "^8.17.1",

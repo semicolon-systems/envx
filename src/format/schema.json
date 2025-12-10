@@ -10,7 +10,7 @@
     },
     "cipher": {
       "type": "string",
-      "enum": ["xchacha20-poly1305"]
+      "enum": ["aes-256-gcm"]
     },
     "kdf": {
       "type": "object",
