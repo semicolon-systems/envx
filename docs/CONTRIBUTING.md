@@ -169,7 +169,7 @@ GitHub Actions automatically runs:
 - **Bugs**: Create issue with reproduction steps
 - **Features**: Start discussion in Discussions tab
 - **Questions**: Check existing issues first
-- **Security**: Email security@semicolon-systems.dev
+- **Security**: Report via GitHub Security Advisories (see SECURITY.md)
 
 ---
 
