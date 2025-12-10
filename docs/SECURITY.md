@@ -74,7 +74,8 @@ Mitigations:
 
 ## Reporting Vulnerabilities
 
-🔒 Please report security issues privately to: **security@semicolon-systems.dev**
+Please report security issues privately via GitHub Security Advisories:
+https://github.com/semicolon-systems/envx/security/advisories/new
 
 Include:
 - Affected version(s)

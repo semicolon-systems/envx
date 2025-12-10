@@ -222,4 +222,8 @@ MIT © Semicolon Systems
 
 ## Security
 
-Found a security issue? Email us at security@semicolon-systems.dev - see [SECURITY.md](./docs/SECURITY.md) for details.
+Found a security issue? Report it via [GitHub Security Advisories](https://github.com/semicolon-systems/envx/security/advisories/new) - see [SECURITY.md](./docs/SECURITY.md) for details.
+
+## Author
+
+Built by [Dhananjay Mahtha](https://www.linkedin.com/in/dhananjay-mahtha/)
