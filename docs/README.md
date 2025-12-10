@@ -11,10 +11,10 @@ envx lets you commit encrypted secrets safely into version control using XChaCha
 ## Features
 
 - 🔐 **XChaCha20-Poly1305**: AEAD authenticated encryption with per-value nonces
-- **Argon2id KDF**: Modern password-based key derivation (with scrypt fallback)
-- **Library + CLI**: Use as npm module or command-line tool
-- **Zero-disk plaintext**: Secrets never touch disk unless explicitly written
-- **Strict validation**: JSON Schema-based format validation
+- 🔑 **Argon2id KDF**: Modern password-based key derivation (with scrypt fallback)
+- 📦 **Library + CLI**: Use as npm module or command-line tool
+- 🎯 **Zero-disk plaintext**: Secrets never touch disk unless explicitly written
+- ✅ **Strict validation**: JSON Schema-based format validation
 - 🧪 **Fully tested**: Comprehensive test suite included
 - 📚 **Production-ready**: TypeScript, ESLint, Prettier, CI
 
@@ -103,13 +103,15 @@ const { valid } = envx.verify('.envx');
 
 ### Threat Model
 
-**Protects against:**
+✅ **Protects against:**
+
 - Accidental exposure of secrets in Git history
 - Unauthorized access if repository is compromised
 - Dictionary attacks (via Argon2id)
 - Tampering (via authenticated encryption)
 
-**Does not protect against:**
+❌ **Does not protect against:**
+
 - Key compromise
 - Memory attacks against running processes
 - Side-channel attacks
@@ -118,15 +120,18 @@ const { valid } = envx.verify('.envx');
 ### Cryptography
 
 **Encryption:** XChaCha20-Poly1305
+
 - AEAD cipher with 256-bit keys
 - 24-byte random nonce per value
 - Detects ciphertext tampering
 
 **Key Derivation:** Argon2id (primary) / scrypt (fallback)
+
 - Argon2id: 65536 KB memory, 3 time cost, 1 parallelism
 - scrypt: N=2^15, r=8, p=1
 
 **Storage:** JSON format with Base64 encoding
+
 - Supports versioning for future algorithm changes
 - Explicit nonce per key for verification
 
@@ -168,13 +173,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup env
         run: |
           echo "$ENVX_KEY" > .envx.key
           npx envx export-vars .envx >> $GITHUB_ENV
           rm .envx.key
-      
+
       - name: Run app
         run: npm run build
 ```
@@ -182,46 +187,55 @@ jobs:
 ## CLI Reference
 
 ### envx init
+
 ```bash
 envx init [--mode random|password] [--key path]
 ```
 
 ### envx encrypt
+
 ```bash
 envx encrypt <file> [--output path] [--key path]
 ```
 
 ### envx decrypt
+
 ```bash
 envx decrypt <file> [--key path] [--write]
 ```
 
 ### envx show
+
 ```bash
 envx show <file> [--key path]
 ```
 
 ### envx run
+
 ```bash
 envx run [--key path] [--envx path] -- <command...>
 ```
 
 ### envx rotate
+
 ```bash
 envx rotate <new-key> [--key path] [--envx path]
 ```
 
 ### envx verify
+
 ```bash
 envx verify <file>
 ```
 
 ### envx check
+
 ```bash
 envx check <file> [--schema path]
 ```
 
 ### envx export-vars
+
 ```bash
 envx export-vars <file> [--key path]
 ```
@@ -229,6 +243,7 @@ envx export-vars <file> [--key path]
 ## Troubleshooting
 
 **Q: "Key file not found"**
+
 ```bash
 # Generate new key
 envx init
@@ -238,6 +253,7 @@ cp .envx.key.backup .envx.key
 ```
 
 **Q: "Failed to decrypt - MAC verification failed"**
+
 - File is corrupted or tampered with
 - Using wrong key
 - Verify file: `envx verify .envx`

@@ -1,69 +1,58 @@
-/**
- * Structured logging utility for envx.
- * 
- * Design principles:
- * - Never log secrets, keys, passwords, or plaintext values
- * - Log only operationally useful information
- * - Use consistent format for easy parsing
- * - Include context for debugging production issues
- * 
- * Log levels:
- * - info: Normal operations (encrypt, decrypt, init)
- * - warn: Unexpected but recoverable conditions
- * - error: Failures that prevent operation
- * - debug: Detailed information for development (not production)
- */
-
-export type LogLevel = 'info' | 'warn' | 'error' | 'debug';
-
-interface LogEntry {
-  timestamp: string;
-  level: LogLevel;
-  component: string;
-  operation: string;
-  message: string;
-}
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 export interface Logger {
-  info(operation: string, message: string): void;
-  warn(operation: string, message: string): void;
-  error(operation: string, message: string): void;
-  debug(operation: string, message: string): void;
+  debug(message: string, context?: Record<string, unknown>): void;
+  info(message: string, context?: Record<string, unknown>): void;
+  warn(message: string, context?: Record<string, unknown>): void;
+  error(message: string, context?: Record<string, unknown>): void;
 }
 
-/**
- * Create a logger instance for a specific component.
- * 
- * @param component - Component name (e.g., 'Envx', 'KDF', 'CLI')
- * @returns Logger instance with level-specific methods
- */
-export function createLogger(component: string): Logger {
-  const log = (level: LogLevel, operation: string, message: string): void => {
-    // Skip debug logs unless explicitly enabled
-    if (level === 'debug' && !process.env.ENVX_DEBUG) {
-      return;
+class ConsoleLogger implements Logger {
+  private minLevel: LogLevel;
+  private levels: Record<LogLevel, number> = {
+    debug: 0,
+    info: 1,
+    warn: 2,
+    error: 3,
+  };
+
+  constructor(minLevel: LogLevel = 'info') {
+    this.minLevel = minLevel;
+  }
+
+  private shouldLog(level: LogLevel): boolean {
+    return this.levels[level] >= this.levels[this.minLevel];
+  }
+
+  private format(level: LogLevel, message: string, context?: Record<string, unknown>): string {
+    const timestamp = new Date().toISOString();
+    const ctx = context ? ` ${JSON.stringify(context)}` : '';
+    return `[${timestamp}] ${level.toUpperCase()}: ${message}${ctx}`;
+  }
+
+  debug(message: string, context?: Record<string, unknown>): void {
+    if (this.shouldLog('debug')) {
+      console.debug(this.format('debug', message, context));
     }
+  }
 
-    const entry: LogEntry = {
-      timestamp: new Date().toISOString(),
-      level,
-      component,
-      operation,
-      message,
-    };
+  info(message: string, context?: Record<string, unknown>): void {
+    if (this.shouldLog('info')) {
+      console.info(this.format('info', message, context));
+    }
+  }
 
-    // Output to stderr for errors/warnings, stdout for info
-    // eslint-disable-next-line no-console
-    const stream = level === 'error' || level === 'warn' ? console.error : console.log;
-    
-    // Format: [timestamp] LEVEL component.operation: message
-    stream(`[${entry.timestamp}] ${entry.level.toUpperCase()} ${entry.component}.${entry.operation}: ${entry.message}`);
-  };
+  warn(message: string, context?: Record<string, unknown>): void {
+    if (this.shouldLog('warn')) {
+      console.warn(this.format('warn', message, context));
+    }
+  }
 
-  return {
-    info: (operation: string, message: string) => log('info', operation, message),
-    warn: (operation: string, message: string) => log('warn', operation, message),
-    error: (operation: string, message: string) => log('error', operation, message),
-    debug: (operation: string, message: string) => log('debug', operation, message),
-  };
+  error(message: string, context?: Record<string, unknown>): void {
+    if (this.shouldLog('error')) {
+      console.error(this.format('error', message, context));
+    }
+  }
 }
+
+export const logger: Logger = new ConsoleLogger((process.env.LOG_LEVEL as LogLevel) || 'info');

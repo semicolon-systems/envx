@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { deriveKeyArgon2id, deriveKeyScrypt, DEFAULT_ARGON2_PARAMS, DEFAULT_SCRYPT_PARAMS } from '../src/crypto/kdf';
+import {
+  deriveKeyArgon2id,
+  deriveKeyScrypt,
+  DEFAULT_ARGON2_PARAMS,
+  DEFAULT_SCRYPT_PARAMS,
+} from '../src/crypto/kdf';
 import { randomBytes } from 'crypto';
 
 describe('KDF Module', () => {
@@ -12,16 +17,28 @@ describe('KDF Module', () => {
   describe('Argon2id', () => {
     it('derives consistent key from same password and salt', async () => {
       const salt = randomBytes(16);
-      const result1 = await deriveKeyArgon2id(password, { ...DEFAULT_ARGON2_PARAMS, salt: Buffer.from(salt) });
-      const result2 = await deriveKeyArgon2id(password, { ...DEFAULT_ARGON2_PARAMS, salt: Buffer.from(salt) });
+      const result1 = await deriveKeyArgon2id(password, {
+        ...DEFAULT_ARGON2_PARAMS,
+        salt: Buffer.from(salt),
+      });
+      const result2 = await deriveKeyArgon2id(password, {
+        ...DEFAULT_ARGON2_PARAMS,
+        salt: Buffer.from(salt),
+      });
       expect(result1.key).toEqual(result2.key);
     });
 
     it('derives different key from different salt', async () => {
       const salt1 = randomBytes(16);
       const salt2 = randomBytes(16);
-      const result1 = await deriveKeyArgon2id(password, { ...DEFAULT_ARGON2_PARAMS, salt: Buffer.from(salt1) });
-      const result2 = await deriveKeyArgon2id(password, { ...DEFAULT_ARGON2_PARAMS, salt: Buffer.from(salt2) });
+      const result1 = await deriveKeyArgon2id(password, {
+        ...DEFAULT_ARGON2_PARAMS,
+        salt: Buffer.from(salt1),
+      });
+      const result2 = await deriveKeyArgon2id(password, {
+        ...DEFAULT_ARGON2_PARAMS,
+        salt: Buffer.from(salt2),
+      });
       expect(result1.key).not.toEqual(result2.key);
     });
 

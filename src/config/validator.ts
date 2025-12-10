@@ -11,9 +11,6 @@ import type { EnvxFile } from '../types';
 
 /**
  * Validates an envx file object against the schema.
- * @param data - The parsed envx file data.
- * @throws ValidationError if the data doesn't match the schema.
- * @returns The validated data, strongly typed.
  */
 export function validateEnvxFile(data: unknown): EnvxFile {
   const ajv = new Ajv({ allErrors: true, strict: false });
@@ -21,8 +18,10 @@ export function validateEnvxFile(data: unknown): EnvxFile {
   const validate = ajv.compile(schema as Record<string, unknown>);
 
   if (!validate(data)) {
-    const errors = (validate.errors ?? []).map((e) => `${e.instancePath} ${e.message ?? ''}`).join('; ');
-    throw new ValidationError(`Invalid envx file format: ${errors}`);
+    const errors = (validate.errors ?? [])
+      .map((e) => `${e.instancePath} ${e.message ?? ''}`)
+      .join('; ');
+    throw new ValidationError('Invalid envx file format', { context: { errors } });
   }
 
   return data as EnvxFile;

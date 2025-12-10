@@ -2,35 +2,34 @@
 
 ## Overview
 
-`envx-secure` is a production-grade encrypted environment variable manager using AES-256-GCM encryption with Argon2id key derivation. The codebase follows a modular, domain-driven architecture with clear separation of concerns and comprehensive error handling.
+`envx-secure` is a production-grade encrypted environment variable manager using XChaCha20-Poly1305 encryption with Argon2id key derivation. The codebase follows a modular, domain-driven architecture with clear separation of concerns and comprehensive error handling.
 
 ## Module Structure
 
 ### Core Modules
 
-#### `src/utils/`
-Error handling and utility functions.
+#### `src/logging/`
+
+Structured logging and error handling layer.
+
+- **`logger.ts`**: JSON-structured logging system
+  - Functions: `log()`, convenience functions (`logger.info()`, `logger.warn()`, `logger.error()`)
+  - Features: Timestamp, level, operation, context, never logs secrets
+  - Types: `LogLevel`, `LogContext`, `LogEntry`
 
 - **`errors.ts`**: Custom error hierarchy
-  - Base: `EnvxError`
-  - Specialized: `CipherError`, `KdfError`, `ValidationError`, `DecryptionError`, `MissingKeyError`, `FileExistsError`
-  - All errors extend EnvxError with descriptive messages
-
-- **`memory.ts`**: Secure memory operations
-  - Functions: `wipeBuffer()`, `wipeBuffers()`, `wipeRecord()` - secure buffer clearing
+  - Base: `EnvxError` with code and metadata
+  - Specialized: `CipherError`, `KdfError`, `ValidationError`, `FileError`, `MissingKeyError`, `DecryptionError`
+  - All errors include metadata for debugging and proper error tracking
 
 #### `src/crypto/`
+
 Cryptographic operations for encryption and key derivation.
 
-- **`encrypt.ts`**: AES-256-GCM encryption
-  - Function: `encryptValues()`
+- **`cipher.ts`**: AES-256-GCM AEAD cipher
+  - Functions: `encryptValue()`, `decryptValue()`
   - Features: Per-value random nonces, base64 encoding, authenticated encryption
-  - Errors: `DecryptionError`
-
-- **`decrypt.ts`**: AES-256-GCM decryption
-  - Function: `decryptValues()`
-  - Features: Authentication tag verification, nonce-based decryption
-  - Errors: `DecryptionError`
+  - Errors: `CipherError`, `DecryptionError`
 
 - **`kdf.ts`**: Key derivation functions
   - Functions: `deriveKeyArgon2id()`, `deriveKeyScrypt()`, `deriveKey()`
@@ -38,7 +37,11 @@ Cryptographic operations for encryption and key derivation.
   - Types: `Argon2idParams`, `ScryptParams`, `KdfResult`, `KdfMeta`
   - Errors: `KdfError`
 
+- **`memory.ts`**: Secure memory operations
+  - Functions: `wipeBuffer()` - secure buffer clearing
+
 #### `src/config/`
+
 Configuration management and validation.
 
 - **`validator.ts`**: Schema validation using AJV
@@ -48,10 +51,11 @@ Configuration management and validation.
 
 - **`schema.json`**: JSON Schema for envx file format
   - Version 1 specification
-  - Cipher: aes-256-gcm
+  - Cipher: xchacha20-poly1305
   - KDF: argon2id, scrypt, or none
 
 #### `src/types/`
+
 Centralized TypeScript type definitions.
 
 - **`index.ts`**: Global interfaces and types
@@ -62,33 +66,31 @@ Centralized TypeScript type definitions.
   - `NonceMap`: Per-value nonce tracking
 
 #### `src/cli/`
+
 Command-line interface.
 
 - **`index.ts`**: Commander.js setup
 - **`commands/`**: Individual commands
-  - `init.ts`: Initialize project with key (random or password-based)
-  - `encrypt.ts`: Encrypt .env file to .envx
-  - `decrypt.ts`: Decrypt .envx file to stdout
-  - `show.ts`: Display decrypted values (JSON output)
-  - `run.ts`: Execute command with decrypted env vars
-  - `rotate.ts`: Rotate encryption key
-  - `verify.ts`: Verify .envx file integrity
-  - `check.ts`: Validate against JSON schema
-  - `export-vars.ts`: Export as shell variables
+  - `encrypt.ts`: Encrypt .env file to .env.enc
+  - `decrypt.ts`: Decrypt .env.enc to .env
+  - `generate.ts`: Generate random encryption key
+  - `status.ts`: Show encryption status
+  - Additional utility commands
 
 #### `src/utils/`
+
 Utility functions.
 
-- **`errors.ts`**: Error classes (see above)
-- **`memory.ts`**: Secure memory operations (see above)
+- **`format.ts`**: Format and parse .env files
+- **`random.ts`**: Random buffer generation helpers
 
 ### Main Entry Point
 
 **`src/index.ts`**: Public API exports
-- Library: `Envx` class
-- Functions: `encryptValues()`, `decryptValues()`, `deriveKey()`, `deriveKeyArgon2id()`, `deriveKeyScrypt()`
-- Format: `parseEnvx()`, `buildEnvxFile()`
-- Types: `EnvxFile`
+
+- Core functions: `encrypt()`, `decrypt()`, `generateKey()`
+- Types: `EnvxFile`, `EncryptionResult`
+- Logger: `logger`, `LogLevel`, `LogContext`
 - Errors: All custom error types
 
 ## Data Flow
@@ -108,6 +110,7 @@ Utility functions.
 ## Error Handling Strategy
 
 ### Error Hierarchy
+
 ```
 Error (Node.js)
   ↓
@@ -115,27 +118,48 @@ EnvxError (Custom Base)
   ├── CipherError (Encryption/decryption)
   ├── KdfError (Key derivation)
   ├── ValidationError (Schema validation)
-  ├── FileExistsError (File already exists)
+  ├── FileError (File I/O)
   ├── MissingKeyError (Missing encryption key)
   └── DecryptionError (Decryption failure)
 ```
 
 ### Error Usage
-All custom errors extend EnvxError and include descriptive messages.
+
+All custom errors include:
+
+- `code`: Machine-readable error identifier
+- `message`: Human-readable description
+- `metadata`: Context object with details (cause, operation, etc.)
 
 Example:
+
 ```typescript
 try {
   await deriveKeyArgon2id(password);
 } catch (e) {
   if (e instanceof KdfError) {
-    console.error('KDF failed:', e.message);
+    logger.error('KDF failed', { error: e.metadata });
   }
 }
 ```
+
+## Logging Strategy
+
+### Log Levels
+
+- `info`: Normal operations (encryption started, etc.)
+- `warn`: Potentially problematic situations (retries, etc.)
+- `error`: Error conditions with recovery
+
+### Never Logged
+
+- Passwords
+- Encryption keys
+- Plaintext environment values
 - Full error stacks in production logs
 
 ### Log Example
+
 ```json
 {
   "timestamp": "2024-01-15T10:30:45.123Z",
@@ -152,12 +176,14 @@ try {
 ## Cryptographic Specifications
 
 ### Encryption
+
 - **Algorithm**: AES-256-GCM (Galois/Counter Mode)
 - **Key Size**: 256 bits (32 bytes)
 - **Nonce**: 96 bits (12 bytes), random per value
 - **Authentication Tag**: 128 bits (16 bytes)
 
 ### Key Derivation
+
 - **Primary**: Argon2id
   - Memory: 65 MB
   - Time Cost: 3 iterations
@@ -174,13 +200,16 @@ try {
 ## Testing
 
 ### Test Coverage
+
 - `test/crypto.test.ts`: KDF and cipher operations (6 tests)
 - `test/cli.test.ts`: CLI command execution (3 tests)
 - `test/format.test.ts`: .env format parsing (5 tests)
 
 ### Running Tests
+
 ```bash
 npm test              # Run all tests
+npm run coverage      # Generate coverage report
 npm run lint          # Lint code
 npm run build         # Build TypeScript
 ```
@@ -188,14 +217,17 @@ npm run build         # Build TypeScript
 ## Development Workflow
 
 ### Adding New Features
+
 1. Create new module in appropriate domain folder
-2. Use custom error types from `src/utils/errors.ts`
-3. Define types in `src/types/index.ts`
-4. Export from `src/index.ts`
-5. Add tests in `test/` directory
-6. Update ARCHITECTURE.md
+2. Use custom error types from `src/logging/errors.ts`
+3. Use structured logging from `src/logging/logger.ts`
+4. Define types in `src/types/index.ts`
+5. Export from `src/index.ts`
+6. Add tests in `test/` directory
+7. Update ARCHITECTURE.md
 
 ### Code Style
+
 - TypeScript strict mode enabled
 - ESLint + Prettier for formatting
 - JSDoc docstrings for public APIs
@@ -206,13 +238,13 @@ npm run build         # Build TypeScript
 ```
 envx-secure/
 ├── src/
-│   ├── utils/             # Error handling & utilities
-│   │   ├── errors.ts
-│   │   └── memory.ts
+│   ├── logging/           # Logging & error handling layer
+│   │   ├── logger.ts
+│   │   └── errors.ts
 │   ├── crypto/            # Cryptographic operations
-│   │   ├── encrypt.ts
-│   │   ├── decrypt.ts
-│   │   └── kdf.ts
+│   │   ├── cipher.ts
+│   │   ├── kdf.ts
+│   │   └── memory.ts
 │   ├── config/            # Configuration & validation
 │   │   ├── validator.ts
 │   │   └── schema.json
@@ -236,27 +268,32 @@ envx-secure/
 ## Performance Considerations
 
 ### Key Derivation
+
 - Argon2id: ~300ms per derivation (intentionally slow for security)
 - scrypt: ~200ms per derivation
 - Keys are cached in memory during application lifecycle
 
 ### Encryption
+
 - AES-256-GCM: Hardware-accelerated on modern CPUs
 - Per-value nonces: No IV reuse attacks possible
 - Minimal memory overhead
 
 ### File I/O
+
 - Streaming for large files (planned)
 - Current: In-memory for safety (protects secrets from disk)
 
 ## Security Model
 
 ### Threat Model
+
 - **Protects Against**: Unauthorized reading of encrypted environment files
 - **Not Protected**: Runtime memory inspection, process dumps
 - **Not Intended For**: Storing multiple independent secrets per file
 
 ### Trust Assumptions
+
 - Password strength is user's responsibility
 - Node.js runtime is trusted
 - File system access controls are in place

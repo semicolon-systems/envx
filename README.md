@@ -3,400 +3,519 @@
 [![CI](https://github.com/semicolon-systems/envx/workflows/CI/badge.svg)](https://github.com/semicolon-systems/envx/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Production-grade encrypted environment variable management for Git workflows**
+Secure encrypted `.env` replacement for storing secrets in version control.
 
-envx enables teams to safely commit encrypted secrets into version control using military-grade AES-256-GCM encryption and Argon2id key derivation. No more scattered `.env.example` files or secrets in CI/CD platforms—commit your encrypted secrets alongside your code.
+envx encrypts environment variables using AES-256-GCM authenticated encryption with Argon2id key derivation. Commit encrypted `.envx` files safely to Git while keeping plaintext secrets out of version control entirely.
 
-## Why envx?
+## Features
 
-**The Problem:** Modern applications need secrets (API keys, database passwords, tokens), but storing them is risky:
-- `.env` files can't be committed (accidental leaks)
-- Secrets platforms create vendor lock-in
-- Manual secret distribution doesn't scale
-- `.env.example` files quickly become stale
-
-**The Solution:** envx encrypts each secret individually with AES-256-GCM, allowing you to commit the encrypted `.envx` file to Git. Your team shares the encryption key through secure channels (password manager, secrets vault), and everyone can decrypt locally or in CI/CD.
-
-## Key Features
-
-- 🔐 **Military-Grade Encryption**: AES-256-GCM with 128-bit authentication tags
-- **Memory-Hard KDF**: Argon2id resists GPU/ASIC attacks (scrypt fallback)
-- **Dual Interface**: Use as CLI tool or programmatic Node.js library
-- **Zero Plaintext Leaks**: Secrets never touch disk unencrypted
-- **Schema Validation**: JSON Schema ensures file integrity
-- **Battle-Tested**: Comprehensive test suite with edge cases
-- **TypeScript Native**: Full type safety and IDE autocomplete
-- **CI/CD Ready**: GitHub Actions, GitLab CI, CircleCI examples
-
-## Security Guarantees
-
-**What envx protects against:**
-- Accidental commit of plaintext secrets to Git
-- Unauthorized repository access without the encryption key
-- Data tampering (authenticated encryption catches modifications)
-- Weak passwords (Argon2id with 64MB memory cost)
-- Rainbow table attacks (random 128-bit salt per key)
-
-**What envx does NOT protect against:**
-- Compromise of the encryption key itself
-- Memory dumps of running processes
-- Side-channel attacks (timing, cache, power analysis)
-- Social engineering attacks (keyloggers, shoulder surfing)
+- AES-256-GCM authenticated encryption with unique nonces per value
+- Argon2id key derivation for password-based keys (scrypt fallback)
+- Library and CLI for integration flexibility
+- Strict validation with JSON Schema
+- File permissions enforcement (0600 for sensitive files)
+- Comprehensive test coverage
+- TypeScript with full type safety
 
 ## Installation
 
 ```bash
-# As a CLI tool (global)
-npm install -g envx
+npm install envx-secure
+```
 
-# As a library (project dependency)
-npm install envx
+Global CLI installation:
+
+```bash
+npm install -g envx-secure
 ```
 
 ## Quick Start
 
-### 1. Initialize Encryption Key
+### Initialize
+
+Generate a random encryption key:
 
 ```bash
-# Option A: Random key (recommended for teams)
 envx init
+```
 
-# Option B: Password-derived key (for solo projects)
+This creates `.envx.key` (32 random bytes). Add this file to `.gitignore`.
+
+For password-based key derivation:
+
+```bash
 envx init --mode password
 ```
 
-This creates `.envx.key` (256-bit key). **Add it to `.gitignore` immediately.**
+You'll be prompted for a password (minimum 12 characters).
 
-### 2. Encrypt Your .env File
+### Encrypt
+
+Encrypt your `.env` file:
 
 ```bash
-# Encrypt existing .env → .envx
 envx encrypt .env
-
-# Custom output path
-envx encrypt .env --output production.envx
 ```
 
-The `.envx` file is safe to commit to Git.
+This creates `.envx` containing encrypted values. The `.envx` file is safe to commit.
 
-### 3. Use Encrypted Secrets
+### Decrypt & Use
+
+Display decrypted values:
 
 ```bash
-# View decrypted values (stdout)
 envx show .envx
-
-# Run command with decrypted environment
-envx run -- npm start
-envx run -- python app.py
-
-# Export for shell use
-eval "$(envx export-vars .envx)"
-
-# GitHub Actions integration
-envx export-vars .envx >> $GITHUB_ENV
 ```
 
-### 4. Verify and Validate
+Run a command with decrypted environment:
 
 ```bash
-# Check file integrity
-envx verify .envx
+envx run -- node app.js
+```
 
-# Validate against custom schema
-envx check .envx --schema .env.schema.json
+Export for shell evaluation:
+
+```bash
+eval $(envx export-vars .envx)
+```
+
+### Verify
+
+Check file integrity and format:
+
+```bash
+envx verify .envx
+```
+
+Validate against JSON Schema:
+
+```bash
+envx check .envx --schema custom-schema.json
+```
+
+### Key Rotation
+
+Rotate to a new encryption key:
+
+```bash
+envx rotate .envx.key.new --key .envx.key --envx .envx
+```
+
+This decrypts with the old key and re-encrypts with the new key.
+
+## Library Usage
+
+```typescript
+import { Envx } from 'envx-secure';
+
+const envx = new Envx('.envx.key');
+
+await envx.init('random');
+
+await envx.encrypt('.env', '.envx');
+
+const secrets = await envx.decrypt('.envx');
+console.log(secrets);
+
+const { valid, details } = envx.verify('.envx');
+console.log(`Valid: ${valid}, Details: ${details}`);
 ```
 
 ## CLI Reference
 
-| Command | Description | Example |
-|---------|-------------|---------|
-| `envx init [--mode random\|password]` | Generate encryption key | `envx init --mode password` |
-| `envx encrypt <file> [--output path]` | Encrypt .env file | `envx encrypt .env.production` |
-| `envx decrypt <file>` | Decrypt to stdout (WARNING: visible) | `envx decrypt .envx \| grep API_KEY` |
-| `envx show <file>` | Display as JSON | `envx show .envx \| jq .DATABASE_URL` |
-| `envx run -- <command>` | Run with decrypted env | `envx run -- node server.js` |
-| `envx verify <file>` | Check file integrity | `envx verify production.envx` |
-| `envx check <file> [--schema]` | Validate against schema | `envx check .envx --schema schema.json` |
-| `envx export-vars <file>` | Export as shell statements | `eval "$(envx export-vars .envx)"` |
-| `envx rotate <new-key>` | Rotate encryption key | `envx rotate .envx.key.new --envx .envx` |
+### `envx init`
 
-### Common Options
+Initialize a new key file.
 
-- `--key <path>`: Custom key file path (default: `.envx.key`)
-- `--envx <path>`: Custom encrypted file path (default: `.envx`)
-- `--output <path>`: Custom output path for encryption
+Options:
 
-## Library Usage (Node.js)
+- `-m, --mode <mode>` - Key mode: `random` (default) or `password`
+- `-k, --key <path>` - Key file path (default: `.envx.key`)
 
-```typescript
-import { Envx } from 'envx';
+Example:
 
-// Initialize with key file
-const envx = new Envx('.envx.key');
-
-// Generate random key
-await envx.init('random');
-
-// Or derive from password
-const password = Buffer.from('your-secure-password', 'utf8');
-await envx.init('password', password);
-
-// Encrypt environment file
-const encrypted = await envx.encrypt('.env');
-console.log(`Encrypted ${Object.keys(encrypted.values).length} variables`);
-
-// Decrypt to object
-const secrets = await envx.decrypt('.envx');
-console.log(secrets.DATABASE_URL);
-
-// Verify file
-const { valid, details } = envx.verify('.envx');
-if (!valid) {
-  throw new Error(`Invalid file: ${details}`);
-}
+```bash
+envx init --mode random --key .envx.key
 ```
 
-## .envx File Format
+### `envx encrypt <file>`
 
-The encrypted file is JSON with this structure:
+Encrypt a `.env` file to `.envx` format.
+
+Options:
+
+- `-o, --output <path>` - Output path (default: replaces `.env` with `.envx`)
+- `-k, --key <path>` - Key file path (default: `.envx.key`)
+
+Example:
+
+```bash
+envx encrypt .env --output production.envx
+```
+
+### `envx decrypt <file>`
+
+Decrypt an `.envx` file and print values.
+
+Options:
+
+- `-k, --key <path>` - Key file path (default: `.envx.key`)
+- `-w, --write` - Write plaintext to disk (unsafe, default: false)
+
+Example:
+
+```bash
+envx decrypt .envx
+```
+
+Warning: Use `--write` only when necessary, as it writes plaintext secrets to disk.
+
+### `envx show <file>`
+
+Display decrypted values as JSON.
+
+Options:
+
+- `-k, --key <path>` - Key file path (default: `.envx.key`)
+
+Example:
+
+```bash
+envx show .envx
+```
+
+### `envx run <command...>`
+
+Execute a command with decrypted environment variables.
+
+Options:
+
+- `-k, --key <path>` - Key file path (default: `.envx.key`)
+- `-e, --envx <path>` - Envx file path (default: `.envx`)
+
+Example:
+
+```bash
+envx run -- npm start
+envx run -- docker-compose up
+```
+
+### `envx export-vars <file>`
+
+Export decrypted variables in shell format.
+
+Options:
+
+- `-k, --key <path>` - Key file path (default: `.envx.key`)
+
+Example:
+
+```bash
+envx export-vars .envx
+eval $(envx export-vars .envx)
+```
+
+### `envx verify <file>`
+
+Verify `.envx` file integrity and format.
+
+Example:
+
+```bash
+envx verify .envx
+```
+
+### `envx check <file>`
+
+Validate `.envx` file against JSON Schema.
+
+Options:
+
+- `-s, --schema <path>` - Custom schema file path
+
+Example:
+
+```bash
+envx check .envx --schema .env.schema.json
+```
+
+### `envx rotate <new-key>`
+
+Rotate encryption key and re-encrypt file.
+
+Options:
+
+- `-k, --key <path>` - Current key file path (default: `.envx.key`)
+- `-e, --envx <path>` - Envx file path (default: `.envx`)
+
+Example:
+
+```bash
+envx rotate .envx.key.new
+```
+
+## File Format
+
+The `.envx` file uses JSON with the following structure:
 
 ```json
 {
   "version": 1,
   "cipher": "aes-256-gcm",
   "kdf": {
-    "type": "none",
-    "salt": null,
-    "params": null
+    "type": "none"
   },
   "nonce_map": {
-    "DATABASE_URL": "R7x3K9mP1vQ2...",
-    "API_KEY": "F2n8L4pT6wE9..."
+    "API_KEY": "base64-encoded-nonce",
+    "DATABASE_URL": "base64-encoded-nonce"
   },
   "values": {
-    "DATABASE_URL": "aB3dF6hJ9kL0...",
-    "API_KEY": "xY1zC4vB7nM2..."
+    "API_KEY": "base64-encoded-ciphertext",
+    "DATABASE_URL": "base64-encoded-ciphertext"
   },
   "meta": {
-    "created_at": "2024-12-10T17:30:00.000Z"
+    "created_at": "2025-12-11T00:00:00.000Z"
   }
 }
 ```
 
-### Format Specifications
+Each value has its own unique 12-byte nonce. Ciphertext includes the 16-byte GCM authentication tag prepended.
 
-- **version**: File format version (currently 1)
-- **cipher**: Always `aes-256-gcm` (authenticated encryption)
-- **kdf**: Key derivation metadata (type: `none`, `argon2id`, or `scrypt`)
-- **nonce_map**: Base64-encoded 96-bit nonces (unique per variable)
-- **values**: Base64-encoded ciphertext (format: `[16-byte tag][ciphertext]`)
-- **meta**: Optional metadata (creation time, comments, etc.)
+## Security
+
+### Encryption
+
+- AES-256-GCM provides authenticated encryption
+- Unique random nonces prevent nonce reuse attacks
+- Authentication tags detect tampering
+- Key must be exactly 32 bytes (256 bits)
+
+### Key Derivation
+
+Argon2id parameters:
+
+- Memory: 65536 KB (64 MB)
+- Time: 3 iterations
+- Parallelism: 1
+
+Scrypt fallback parameters:
+
+- N: 32768 (2^15)
+- r: 8
+- p: 1
+- dkLen: 32
+
+### Best Practices
+
+1. Never commit `.envx.key` to version control
+2. Use strong passwords (minimum 12 characters) for password-based keys
+3. Rotate keys periodically
+4. Set file permissions to 0600 for key files
+5. Use `envx run` instead of decrypting to disk
+6. Audit `.envx` files before committing
+
+### Threat Model
+
+envx protects against:
+
+- Accidental secret exposure in version control
+- Unauthorized access to encrypted files
+- Tampering with encrypted data
+
+envx does NOT protect against:
+
+- Compromised key files
+- Weak passwords in password-based mode
+- Runtime memory attacks
+- Malicious code with key file access
+
+## GitHub Actions
+
+Example workflow:
+
+```yaml
+- name: Decrypt secrets
+  env:
+    ENVX_KEY: ${{ secrets.ENVX_KEY }}
+  run: |
+    echo "$ENVX_KEY" | base64 -d > .envx.key
+    chmod 600 .envx.key
+    eval $(npx envx-secure export-vars .envx)
+
+- name: Run application
+  run: npm start
+```
+
+Store your base64-encoded key in GitHub Secrets:
+
+```bash
+base64 < .envx.key
+```
+
+## Compatibility
+
+- Node.js 18.x or later
+- Linux, macOS, Windows (WSL recommended)
+- UTF-8 environment variable values
+
+## Troubleshooting
+
+### "Key file not found"
+
+Ensure `.envx.key` exists in the expected location or specify `-k` option.
+
+### "Invalid key length"
+
+Key file must be exactly 32 bytes. Re-initialize with `envx init`.
+
+### "Decryption failed"
+
+Wrong key, corrupted file, or tampered ciphertext. Verify key file and `.envx` integrity.
+
+### "Permission denied"
+
+Key file permissions may be too restrictive. Ensure readable by current user.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
+
+## License
+
+MIT - see [LICENSE](LICENSE)
+
+## Security
+
+Report vulnerabilities to security@semicolon-systems.com. See [SECURITY.md](SECURITY.md) for details.
+
+## Security Model
+
+### Cryptography
+
+**Encryption:** AES-256-GCM
+
+- AEAD cipher with 256-bit keys
+- 12-byte random nonce per value
+- 16-byte authentication tag
+- Detects ciphertext tampering
+
+**Key Derivation:** Argon2id (primary) / scrypt (fallback)
+
+- Argon2id: 65536 KB memory, 3 time cost, 1 parallelism
+- scrypt: N=2^15, r=8, p=1
+- Random 16-byte salt per key
+
+### What envx protects against:
+
+- ✅ Accidental exposure of secrets in Git history
+- ✅ Unauthorized access if repository is compromised
+- ✅ Dictionary attacks (via Argon2id)
+- ✅ Tampering (via authenticated encryption)
+
+### What envx does NOT protect against:
+
+- ❌ Key compromise
+- ❌ Memory attacks against running processes
+- ❌ Side-channel attacks
+- ❌ Keylogging during input
+
+## .envx Format
+
+```json
+{
+  "version": 1,
+  "cipher": "xchacha20-poly1305",
+  "kdf": {
+    "type": "argon2id",
+    "salt": "base64...",
+    "params": {
+      "memory": 65536,
+      "time": 3,
+      "parallelism": 1
+    }
+  },
+  "nonce_map": {
+    "API_KEY": "base64nonce=="
+  },
+  "values": {
+    "API_KEY": "base64ciphertext=="
+  },
+  "meta": {
+    "created_at": "2025-01-01T00:00:00Z"
+  }
+}
+```
 
 ## GitHub Actions Example
 
 ```yaml
-name: Deploy
-on: [push]
-
 env:
   ENVX_KEY: ${{ secrets.ENVX_KEY }}
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      
-      - name: Install envx
-        run: npm install -g envx
-      
-      - name: Decrypt secrets
+
+      - name: Setup env
         run: |
           echo "$ENVX_KEY" > .envx.key
-          envx export-vars .envx >> $GITHUB_ENV
+          npx envx export-vars .envx >> $GITHUB_ENV
           rm .envx.key
-      
-      - name: Deploy application
-        run: npm run deploy
-        # DATABASE_URL and API_KEY are now in environment
+
+      - name: Run app
+        run: npm run build
 ```
 
-## Security Model
+## CLI Commands
 
-### Cryptographic Design
-
-**Encryption:**
-- Algorithm: AES-256-GCM (NIST-approved AEAD)
-- Key Size: 256 bits (32 bytes)
-- Nonce: 96 bits (12 bytes), randomly generated per value
-- Authentication Tag: 128 bits (16 bytes), prevents tampering
-- Implementation: Node.js `crypto` module (OpenSSL-backed)
-
-**Key Derivation (password mode):**
-- Primary: Argon2id (PHC winner, 2015)
-  - Memory: 64 MB (resists GPU attacks)
-  - Iterations: 3 (time cost)
-  - Parallelism: 1 thread
-  - Salt: 128 bits, random
-- Fallback: scrypt (N=32768, r=8, p=1)
-
-### Threat Model
-
-**Assumptions:**
-1. Encryption key is stored securely (password manager, vault, HSM)
-2. Key is distributed through secure out-of-band channel
-3. Workstation/CI environment is not compromised
-4. Git repository may be public or leaked
-
-**Attack Scenarios:**
-
-| Scenario | Protected? | Mitigation |
-|----------|-----------|------------|
-| Accidental `.env` commit | Yes | Encrypted file is safe to commit |
-| Repository leak/public | Yes | Ciphertext is useless without key |
-| Weak password | Yes | Argon2id makes brute-force impractical |
-| Data tampering | Yes | Auth tag verification catches changes |
-| Key compromise | No | Attacker can decrypt everything |
-| Memory dump | No | Key/plaintext may be in RAM |
-| Malicious CI | No | CI has key and can exfiltrate |
-
-### Best Practices
-
-1. **Key Management:**
-   - Use random keys for teams (not passwords)
-   - Store keys in password managers (1Password, Bitwarden)
-   - Rotate keys periodically (quarterly recommended)
-   - Never commit keys to Git (add `.envx.key` to `.gitignore`)
-
-2. **Access Control:**
-   - Limit who has the encryption key
-   - Use separate keys for dev/staging/production
-   - Audit key access regularly
-
-3. **Operational Security:**
-   - Use `envx run` instead of decrypting to files
-   - Delete plaintext files immediately after encryption
-   - Enable debug logging only in development (`ENVX_DEBUG=1`)
-   - Review `.envx` diffs carefully before committing
-
-4. **Key Rotation:**
-   ```bash
-   # Rotate key safely
-   envx rotate .envx.key.new
-   # Update team/CI with new key
-   # Verify: envx verify .envx
-   # Delete old key: shred -u .envx.key.old
-   ```
-
-## Comparison to Alternatives
-
-| Feature | envx | git-crypt | Blackbox | SOPS | Vault |
-|---------|------|-----------|----------|------|-------|
-| No external deps | Yes | No (gpg) | No (gpg) | No (kms) | No (server) |
-| Per-value encryption | Yes | No | No | Yes | N/A |
-| Authenticated encryption | Yes | No | No | Yes | Yes |
-| TypeScript API | Yes | No | No | No | Yes |
-| Transparent Git | No | Yes | Yes | No | No |
-| Key rotation | Yes | No | No | Yes | Yes |
-| Self-hosted | Yes | Yes | Yes | Yes | Partial |
-
-## Troubleshooting
-
-**"Key file not found"**
-```bash
-# Generate new key
-envx init
-
-# Or specify custom path
-envx encrypt .env --key /path/to/key
-```
-
-**"Decryption failed: wrong key, tampered data, or file corruption"**
-- Wrong key file (verify you have the correct key)
-- File was manually edited (re-encrypt from original `.env`)
-- Disk corruption (restore from backup)
-
-**"Invalid key length: expected 32 bytes, got X bytes"**
-- Key file is corrupted
-- Wrong file specified (must be output of `envx init`)
-- Re-generate key and re-encrypt
-
-**"Password cannot be empty"**
-- Press Enter after typing password
-- Ensure stdin is connected (doesn't work in some CI contexts)
-- Use random mode instead: `envx init` (no password)
-
-**Debug logging:**
-```bash
-# Enable detailed logs
-export ENVX_DEBUG=1
-envx encrypt .env
-```
-
-## Development
-
-```bash
-# Clone repository
-git clone https://github.com/semicolon-systems/envx.git
-cd envx
-
-# Install dependencies
-npm install
-
-# Build TypeScript
-npm run build
-
-# Run tests
-npm test
-
-# Lint code
-npm run lint
-
-# Format code
-npm run format
-```
+| Command                               | Description                     |
+| ------------------------------------- | ------------------------------- |
+| `envx init [--mode random\|password]` | Initialize new project with key |
+| `envx encrypt <file> [--output path]` | Encrypt .env file               |
+| `envx decrypt <file>`                 | Decrypt and print to stdout     |
+| `envx show <file>`                    | Show decrypted values (JSON)    |
+| `envx run -- <command>`               | Run command with decrypted env  |
+| `envx rotate <new-key>`               | Rotate to new encryption key    |
+| `envx verify <file>`                  | Verify file integrity           |
+| `envx check <file> [--schema path]`   | Validate against schema         |
+| `envx export-vars <file>`             | Export as KEY=VALUE             |
 
 ## Documentation
 
-- [Security Policy](./docs/SECURITY.md) - Threat model and vulnerability reporting
-- [Contributing Guide](./docs/CONTRIBUTING.md) - Development workflow and standards
-- [Architecture](./docs/ARCHITECTURE.md) - Technical design and implementation
-- [Changelog](./docs/CHANGELOG.md) - Version history and breaking changes
+- [Security Policy](./docs/SECURITY.md) - Threat model and best practices
+- [Contributing](./docs/CONTRIBUTING.md) - Development guide
+- [Architecture](./docs/ARCHITECTURE.md) - Technical design
+- [Changelog](./docs/CHANGELOG.md) - Version history
 
-## License
+## Troubleshooting
 
-MIT © [Semicolon Systems](https://github.com/semicolon-systems)
+**Q: "Key file not found"**
 
-See [LICENSE](./LICENSE) for full text.
+```bash
+# Generate new key
+envx init
+```
 
-## Security Contact
+**Q: "Failed to decrypt - MAC verification failed"**
 
-Found a security vulnerability? Please report responsibly via GitHub Issues or see [SECURITY.md](./docs/SECURITY.md) for our disclosure policy.
+- File is corrupted or tampered with
+- Using wrong key
+- Verify file: `envx verify .envx`
 
-**Do not** open public issues for security concerns.
+**Q: Can I use password-based encryption?**
+
+Yes: `envx init --mode password` derives key from password using Argon2id.
 
 ## Contributing
 
-Contributions welcome! Please read [CONTRIBUTING.md](./docs/CONTRIBUTING.md) first.
+Contributions are welcome! Please see [CONTRIBUTING.md](./docs/CONTRIBUTING.md) for guidelines.
 
-Key areas for contribution:
-- Additional KDF algorithms (e.g., Balloon, Catena)
-- Hardware key support (YubiKey, TPM)
-- Multi-recipient encryption (multiple keys)
-- Key backup/recovery mechanisms
-- Performance optimizations
+## License
 
-## Acknowledgments
+MIT © Semicolon Systems
 
-- Argon2 algorithm: [Password Hashing Competition (2015)](https://github.com/P-H-C/phc-winner-argon2)
-- AES-GCM: NIST SP 800-38D
-- Inspired by: SOPS, git-crypt, Blackbox
+## Security Contact
 
----
-
-**Star us on GitHub if you find this useful**
+Found a vulnerability? See [SECURITY.md](./docs/SECURITY.md) for reporting guidelines.

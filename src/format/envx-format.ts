@@ -5,7 +5,11 @@ import schema from './schema.json';
 import { ValidationError } from '../utils/errors';
 
 export type EnvxKdf =
-  | { type: 'argon2id'; salt: string; params: { memory: number; time: number; parallelism: number } }
+  | {
+      type: 'argon2id';
+      salt: string;
+      params: { memory: number; time: number; parallelism: number };
+    }
   | { type: 'scrypt'; salt: string; params: { N: number; r: number; p: number; dkLen: number } }
   | { type: 'none' };
 
@@ -25,8 +29,8 @@ const validateFn = ajv.compile(schema as Record<string, unknown>);
 export const validateEnvx = (data: unknown): EnvxFile => {
   if (!validateFn(data)) {
     const errors = (validateFn.errors ?? []) as ErrorObject[];
-    const message = errors.map((e) => `${e.instancePath} ${e.message ?? ''}`).join('; ') ||
-      'Invalid envx file';
+    const message =
+      errors.map((e) => `${e.instancePath} ${e.message ?? ''}`).join('; ') || 'Invalid envx file';
     throw new ValidationError(message);
   }
   const typed = data as EnvxFile;
@@ -62,9 +66,7 @@ export const parseEnvx = (json: string): EnvxFile => {
   }
 };
 
-export const buildEnvxFile = (
-  payload: Omit<EnvxFile, 'version' | 'cipher'>,
-): EnvxFile => ({
+export const buildEnvxFile = (payload: Omit<EnvxFile, 'version' | 'cipher'>): EnvxFile => ({
   version: 1,
   cipher: 'aes-256-gcm',
   ...payload,

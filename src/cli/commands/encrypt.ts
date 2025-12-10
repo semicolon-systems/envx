@@ -1,46 +1,24 @@
-/**
- * CLI command: Encrypt .env file to .envx format.
- * 
- * Reads plaintext environment variables and encrypts each value
- * with AES-256-GCM. Output file is created with restrictive permissions.
- */
-
 import { Envx } from '../../lib/envx';
-import { existsSync } from 'fs';
-import { createLogger } from '../../utils/logger';
-
-const logger = createLogger('CLI.encrypt');
+import { logger } from '../../utils/logger';
 
 export const encryptCommand = async (
-  file: string, 
-  output: string | undefined, 
-  keyPath: string
+  file: string,
+  output: string | undefined,
+  keyPath: string,
 ): Promise<void> => {
   try {
-    if (!existsSync(file)) {
-      console.error(`ERROR: Error: Input file not found: ${file}`);
-      process.exit(1);
-    }
-
-    logger.info('encrypt', `Encrypting ${file}`);
-    
     const envx = new Envx(keyPath);
     const result = await envx.encrypt(file, output);
-    
     const outputPath = output || file.replace(/\.env$/, '.envx');
-    const varCount = Object.keys(result.values).length;
-    
-    console.info(`SUCCESS: Encrypted ${varCount} variable${varCount !== 1 ? 's' : ''} to ${outputPath}`);
-    logger.info('encrypt', `Encryption successful: ${varCount} variables`);
+
+    console.log(`Encrypted ${Object.keys(result.values).length} values to ${outputPath}`);
+    logger.info('Encryption completed successfully');
+
+    process.exit(0);
   } catch (error) {
-    logger.error('encrypt', `Encryption failed: ${String(error)}`);
-    
-    if (error instanceof Error) {
-      console.error(`ERROR: Error: ${error.message}`);
-    } else {
-      console.error(`ERROR: Error: ${String(error)}`);
-    }
-    
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error('Encryption failed', { error: message });
+    console.error(`Error: ${message}`);
     process.exit(1);
   }
 };

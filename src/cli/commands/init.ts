@@ -1,98 +1,48 @@
-/**
- * CLI command: Initialize encryption key.
- * 
- * Modes:
- * - random: Generate cryptographically secure random 256-bit key
- * - password: Derive key from user password using Argon2id
- * 
- * Security notes:
- * - Key file is written with 0600 permissions (owner-only)
- * - Password input is not echoed to terminal
- * - Password is wiped from memory after use
- * - Salt is displayed for user records (safe to share)
- */
-
 import { Envx } from '../../lib/envx';
 import { createInterface } from 'readline';
-import { createLogger } from '../../utils/logger';
+import { stdin, stdout } from 'process';
+import { logger } from '../../utils/logger';
 
-const logger = createLogger('CLI.init');
+const promptPassword = async (prompt: string): Promise<string> => {
+  const rl = createInterface({ input: stdin, output: stdout });
 
-/**
- * Read password from stdin without echoing.
- * 
- * Note: In a real production CLI, you'd use a library like 'read' or 'prompts'
- * for proper password input with masking. This is a minimal implementation.
- */
-const readPasswordFromStdin = (): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const rl = createInterface({
-      input: process.stdin,
-      output: process.stdout,
-    });
-    
-    // Note: This still echoes. For production, use a proper password input library.
-    rl.question('Enter password: ', (password) => {
+  return new Promise((resolve) => {
+    rl.question(prompt, (answer) => {
       rl.close();
-      
-      if (!password || password.trim().length === 0) {
-        reject(new Error('Password cannot be empty'));
-        return;
-      }
-      
-      resolve(password);
+      resolve(answer);
     });
   });
 };
 
 export const initCommand = async (mode: string, keyPath: string): Promise<void> => {
   try {
-    logger.info('init', `Initializing key in ${mode} mode at ${keyPath}`);
-    
     const envx = new Envx(keyPath);
 
     if (mode === 'password') {
-      const password = await readPasswordFromStdin();
-      const passwordBuf = Buffer.from(password, 'utf8');
-      
-      // Wipe password string (best effort)
-      password.split('').forEach((_, i, arr) => arr[i] = '\0');
-      
-      const { salt, kdfMeta } = await envx.init('password', passwordBuf);
-      
-      // Wipe password buffer
-      passwordBuf.fill(0);
-      
-      console.info(`SUCCESS: Key initialized at ${keyPath}`);
-      console.info(`  Salt: ${salt}`);
-      console.info(`  KDF: ${kdfMeta?.type}`);
-      
-      // Display parameters based on KDF type
-      if (kdfMeta?.type === 'argon2id' && 'memory' in kdfMeta.params) {
-        console.info(`  Params: memory=${kdfMeta.params.memory}KB, time=${kdfMeta.params.time}`);
-      } else if (kdfMeta?.type === 'scrypt' && 'N' in kdfMeta.params) {
-        console.info(`  Params: N=${kdfMeta.params.N}, r=${kdfMeta.params.r}, p=${kdfMeta.params.p}`);
+      const password = await promptPassword('Enter password for key derivation: ');
+
+      if (!password || password.length < 12) {
+        logger.error('Password must be at least 12 characters');
+        process.exit(1);
       }
-      
-      console.info('\nWARNING: Keep this key file secure and backed up.');
-      console.info('WARNING: The salt is public, but the key must remain secret.');
+
+      const { salt, kdfMeta } = await envx.init('password', Buffer.from(password, 'utf8'));
+      console.log(`Key initialized at ${keyPath}`);
+      console.log(`KDF: ${kdfMeta?.type}`);
+      console.log(`Salt: ${salt}`);
+
+      logger.info('Password-based key initialized successfully');
     } else {
       const { keyPath: kp } = await envx.init('random');
-      console.info(`SUCCESS: Random key initialized at ${kp}`);
-      console.info('\nWARNING: This key is cryptographically random.');
-      console.info('WARNING: Back it up securely - it cannot be recovered.');
+      console.log(`Key initialized at ${kp}`);
+      logger.info('Random key initialized successfully');
     }
 
-    logger.info('init', 'Key initialization successful');
+    process.exit(0);
   } catch (error) {
-    logger.error('init', `Initialization failed: ${String(error)}`);
-    
-    if (error instanceof Error) {
-      console.error(`ERROR: Error: ${error.message}`);
-    } else {
-      console.error(`ERROR: Error: ${String(error)}`);
-    }
-    
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error('Initialization failed', { error: message });
+    console.error(`Error: ${message}`);
     process.exit(1);
   }
 };

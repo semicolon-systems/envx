@@ -34,7 +34,11 @@ describe('Format Module', () => {
       const json = JSON.stringify({
         version: 1,
         cipher: 'aes256',
-        kdf: { type: 'argon2id', salt: 'base64salt', params: { memory: 1, time: 1, parallelism: 1 } },
+        kdf: {
+          type: 'argon2id',
+          salt: 'base64salt',
+          params: { memory: 1, time: 1, parallelism: 1 },
+        },
         nonce_map: { KEY: 'nonce' },
         values: { KEY: 'cipher' },
       });
@@ -44,8 +48,12 @@ describe('Format Module', () => {
     it('rejects mismatched keys and nonces', () => {
       const json = JSON.stringify({
         version: 1,
-        cipher: 'aes-256-gcm',
-        kdf: { type: 'argon2id', salt: 'base64salt', params: { memory: 1, time: 1, parallelism: 1 } },
+        cipher: 'xchacha20-poly1305',
+        kdf: {
+          type: 'argon2id',
+          salt: 'base64salt',
+          params: { memory: 1, time: 1, parallelism: 1 },
+        },
         nonce_map: { KEY1: 'nonce' },
         values: { KEY2: 'cipher' },
       });

@@ -1,35 +1,55 @@
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import Ajv from 'ajv';
+import { logger } from '../../utils/logger';
+import { parseEnvx } from '../../format/envx-format';
 
 export const checkCommand = async (file: string, schemaPath: string | undefined): Promise<void> => {
   try {
+    if (!existsSync(file)) {
+      console.error(`Error: File not found: ${file}`);
+      process.exit(1);
+    }
+
     const envxContent = readFileSync(file, 'utf8');
-    const data = JSON.parse(envxContent);
 
     if (!schemaPath) {
-      console.warn('No schema provided, skipping validation');
+      parseEnvx(envxContent);
+      console.log('Valid envx format');
+      logger.info('Format validation passed', { file });
+      process.exit(0);
       return;
     }
 
+    if (!existsSync(schemaPath)) {
+      console.error(`Error: Schema file not found: ${schemaPath}`);
+      process.exit(1);
+    }
+
+    const data = JSON.parse(envxContent);
     const schemaContent = readFileSync(schemaPath, 'utf8');
     const schema = JSON.parse(schemaContent);
 
-    const ajv = new Ajv();
+    const ajv = new Ajv({ allErrors: true });
     const validate = ajv.compile(schema as Record<string, unknown>);
 
     if (validate(data)) {
-      console.info('SUCCESS: Validation passed');
+      console.log('Validation passed');
+      logger.info('Schema validation passed', { file, schema: schemaPath });
+      process.exit(0);
     } else {
-      console.error('ERROR: Validation failed');
+      console.error('Validation failed:');
       if (validate.errors) {
         for (const error of validate.errors) {
           console.error(`  ${error.instancePath} ${error.message}`);
         }
       }
+      logger.error('Schema validation failed', { file, errors: validate.errors });
       process.exit(1);
     }
   } catch (error) {
-    console.error(`Error: ${String(error)}`);
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error('Check command failed', { error: message });
+    console.error(`Error: ${message}`);
     process.exit(1);
   }
 };
