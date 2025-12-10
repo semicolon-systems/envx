@@ -80,7 +80,7 @@ Mitigations:
 
 ## Reporting Vulnerabilities
 
-🔒 Please report security issues privately to: **security@semicolon-systems.dev**
+Please report security issues privately using GitHub Security Advisories.
 
 Include:
 

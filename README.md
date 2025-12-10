@@ -386,7 +386,7 @@ MIT - see [LICENSE](LICENSE)
 
 ## Security
 
-Report vulnerabilities to security@semicolon-systems.com. See [SECURITY.md](SECURITY.md) for details.
+See [SECURITY.md](SECURITY.md) for security details.
 
 ## Security Model
 
@@ -516,6 +516,6 @@ Contributions are welcome! Please see [CONTRIBUTING.md](./docs/CONTRIBUTING.md) 
 
 MIT © Semicolon Systems
 
-## Security Contact
+## Author
 
-Found a vulnerability? See [SECURITY.md](./docs/SECURITY.md) for reporting guidelines.
+Dhananjay Mahtha - [LinkedIn Profile](https://linkedin.com/in/dhananjay-mahtha/)

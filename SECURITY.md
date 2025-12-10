@@ -134,9 +134,7 @@ We take security seriously and appreciate responsible disclosure.
 
 ### How to Report
 
-**Email**: security@semicolon-systems.com
-
-**PGP Key**: Available on request
+Please open a GitHub Security Advisory on the repository.
 
 ### What to Include
 
@@ -190,7 +188,7 @@ Security updates are released as patch versions (e.g., 1.0.1, 1.0.2) and announc
 - GitHub Security Advisories
 - npm advisory database
 - Release notes
-- Email to security mailing list (join: security-announce@semicolon-systems.com)
+- GitHub Security Advisories
 
 ## Dependencies
 
@@ -234,4 +232,4 @@ envx is NOT:
 
 For security questions that don't require private disclosure, open a GitHub Discussion in the Security category.
 
-For private security questions, email security@semicolon-systems.com.
+For security questions, please use the GitHub Security Advisory process.

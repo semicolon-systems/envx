@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Initial Release
 
 #### Added
+
 - AES-256-GCM authenticated encryption for environment variables
 - Argon2id key derivation function with secure default parameters
 - Scrypt fallback for key derivation
@@ -26,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Complete documentation (README, SECURITY, CONTRIBUTING)
 
 #### Security
+
 - Prevents nonce reuse through unique random generation
 - Authentication tag verification to detect tampering
 - Constant-time operations where applicable
@@ -34,12 +36,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Memory wiping for sensitive data after use
 
 #### Performance
+
 - Encrypts 100 keys in <5ms
 - Encrypts 1000 keys in <10ms
 - Handles 1MB values in <10ms
 - Memory usage <100MB for typical operations
 
 #### Cryptographic Parameters
+
 - AES-256-GCM: 256-bit key, 96-bit nonce, 128-bit tag
 - Argon2id: 64MB memory, 3 iterations, 1 thread
 - Scrypt: N=32768, r=8, p=1, dkLen=32

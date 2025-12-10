@@ -272,6 +272,6 @@ See [CONTRIBUTING.md](./docs/CONTRIBUTING.md)
 
 MIT © Semicolon Systems
 
-## Security Contact
+## Author
 
-Found a vulnerability? Email security@semicolon-systems.dev (or see [SECURITY.md](./docs/SECURITY.md))
+Dhananjay Mahtha - [LinkedIn Profile](https://linkedin.com/in/dhananjay-mahtha/)

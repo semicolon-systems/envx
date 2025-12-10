@@ -88,6 +88,7 @@ npm audit            # Check for vulnerabilities
 - Document assumptions and invariants
 
 **Good comments:**
+
 ```typescript
 // Nonce must be unique for each encryption to prevent attacks
 const nonce = randomBytes(12);
@@ -97,6 +98,7 @@ const { key } = await deriveKeyArgon2id(password);
 ```
 
 **Bad comments:**
+
 ```typescript
 // Create a nonce
 const nonce = randomBytes(12);
@@ -139,6 +141,7 @@ throw new DecryptionError('Failed to decrypt value', {
   - `error`: Failures requiring attention
 
 **Never log:**
+
 - Encryption keys
 - Decrypted values
 - Passwords
@@ -172,10 +175,10 @@ describe('Feature name', () => {
   it('should behave correctly', () => {
     // Arrange
     const input = 'test';
-    
+
     // Act
     const result = myFunction(input);
-    
+
     // Assert
     expect(result).toBe('expected');
   });
@@ -194,6 +197,7 @@ npm test -- --grep "encryption"
 ### Security-Critical Code
 
 Special care required for:
+
 - Anything in `src/crypto/`
 - Key generation and storage
 - Memory handling for sensitive data
@@ -203,6 +207,7 @@ Special care required for:
 ### Security Review Process
 
 Changes to cryptographic code require:
+
 1. Detailed explanation of the change
 2. Security rationale
 3. Test coverage for security properties
@@ -211,8 +216,6 @@ Changes to cryptographic code require:
 ### Reporting Security Issues
 
 Do NOT open public issues for security vulnerabilities.
-
-Email: security@semicolon-systems.com
 
 See [SECURITY.md](SECURITY.md) for details.
 
@@ -231,6 +234,7 @@ See [SECURITY.md](SECURITY.md) for details.
 ### PR Description
 
 Include:
+
 - What the PR does
 - Why the change is needed
 - How you tested it
@@ -267,6 +271,7 @@ chore: update dependencies
 ```
 
 **Types:**
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation only
@@ -296,6 +301,7 @@ Keep examples up-to-date and tested. All code samples must work as shown.
 ### API Documentation
 
 Document all public APIs with:
+
 - Purpose and behavior
 - Parameters and types
 - Return values
@@ -310,13 +316,9 @@ Update `ARCHITECTURE.md` when making structural changes.
 
 - **Bugs**: Open a GitHub issue
 - **Feature requests**: Open a GitHub discussion
-- **Security**: Email security@semicolon-systems.com
+- **Security**: See [SECURITY.md](SECURITY.md)
 - **Other**: Open a GitHub discussion
 
 ## License
 
 By contributing, you agree that your contributions will be licensed under the MIT License.
-
-## Recognition
-
-Contributors will be acknowledged in release notes and the README if they wish.
