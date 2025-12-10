@@ -10,7 +10,7 @@ envx is designed to protect secrets committed to Git repositories from unauthori
 
 ## Threat Model
 
-### ✅ Protections Provided
+### Protections Provided
 
 envx **DOES** protect against the following threats:
 
@@ -46,7 +46,7 @@ envx **DOES** protect against the following threats:
 **Storage Cost:** 2^128 salts × 32 bytes/key = 10^38 bytes (exceeds universe atom count)  
 **Residual Risk:** None
 
-### ❌ Protections NOT Provided
+### Protections NOT Provided
 
 envx **DOES NOT** protect against the following threats:
 
@@ -219,13 +219,13 @@ envx init --mode password
 
 | Method | Security | Convenience | Use Case |
 |--------|----------|-------------|----------|
-| **Password Manager** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | Teams, personal projects |
-| **HashiCorp Vault** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | Enterprise, audit requirements |
-| **AWS Secrets Manager** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | AWS deployments |
-| **CI/CD Secrets** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | Automated pipelines |
-| **HSM / YubiKey** | ⭐⭐⭐⭐⭐ | ⭐⭐ | Highly sensitive environments |
-| **Filesystem (encrypted)** | ⭐⭐⭐ | ⭐⭐⭐⭐ | Single workstation |
-| **Filesystem (plaintext)** | ⭐ | ⭐⭐⭐⭐⭐ | **NOT RECOMMENDED** |
+| **Password Manager** | 5/5 | 4/5 | Teams, personal projects |
+| **HashiCorp Vault** | 5/5 | 3/5 | Enterprise, audit requirements |
+| **AWS Secrets Manager** | 5/5 | 3/5 | AWS deployments |
+| **CI/CD Secrets** | 4/5 | 5/5 | Automated pipelines |
+| **HSM / YubiKey** | 5/5 | 2/5 | Highly sensitive environments |
+| **Filesystem (encrypted)** | 3/5 | 4/5 | Single workstation |
+| **Filesystem (plaintext)** | 1/5 | 5/5 | **NOT RECOMMENDED** |
 
 ### Distribution
 
@@ -237,11 +237,11 @@ envx init --mode password
 5. **Secret sharing services:** OneTimeSecret.com (burn after reading)
 
 **Insecure Channels (NEVER USE):**
-❌ Unencrypted email  
-❌ Slack/Teams direct messages  
-❌ SMS text messages  
-❌ Pastebin / GitHub gists  
-❌ Shared Google Docs  
+- Unencrypted email  
+- Slack/Teams direct messages  
+- SMS text messages  
+- Pastebin / GitHub gists  
+- Shared Google Docs  
 
 ### Rotation Schedule
 
@@ -280,7 +280,7 @@ srm .envx.key.old       # macOS (requires brew install srm)
 
 ### Safe Usage Patterns
 
-✅ **DO:**
+**DO:**
 - Use `envx run -- command` to inject secrets without writing to disk
 - Encrypt immediately after creating `.env` file
 - Add `.envx.key` to `.gitignore` before first commit
@@ -289,7 +289,7 @@ srm .envx.key.old       # macOS (requires brew install srm)
 - Enable debug logging in development: `ENVX_DEBUG=1`
 - Review `.envx` diffs before committing (ensure no plaintext leaks)
 
-❌ **DON'T:**
+**DON'T:**
 - Don't run `envx decrypt .envx > .env` (leaves plaintext on disk)
 - Don't commit `.envx.key` to Git (defeats entire purpose)
 - Don't share keys via insecure channels (email, Slack)
@@ -389,11 +389,11 @@ try {
 6. **Disclosure timeline** (your expectations for fix/announcement)
 
 **Our Commitments:**
-- ✅ Acknowledge receipt within **48 hours**
-- ✅ Provide initial assessment within **1 week**
-- ✅ Issue patch within **30 days** (for confirmed vulnerabilities)
-- ✅ Credit reporter in security advisory (unless anonymity requested)
-- ✅ Coordinate disclosure timing with reporter
+- Acknowledge receipt within **48 hours**
+- Provide initial assessment within **1 week**
+- Issue patch within **30 days** (for confirmed vulnerabilities)
+- Credit reporter in security advisory (unless anonymity requested)
+- Coordinate disclosure timing with reporter
 
 **Disclosure Timeline:**
 ```
@@ -424,13 +424,13 @@ Day 31:  CVE requested (if applicable)
 
 ### Responsible Disclosure Guidelines
 
-**✅ DO:**
+**DO:**
 - Report vulnerabilities privately before public disclosure
 - Provide reasonable time for patches (30-90 days standard)
 - Test against isolated environments (your own infrastructure)
 - Document findings clearly with reproducible steps
 
-**❌ DON'T:**
+**DON'T:**
 - Publicly disclose before coordinated release
 - Exploit vulnerabilities in production systems
 - Access other users' data or systems

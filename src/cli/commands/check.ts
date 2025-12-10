@@ -18,9 +18,9 @@ export const checkCommand = async (file: string, schemaPath: string | undefined)
     const validate = ajv.compile(schema as Record<string, unknown>);
 
     if (validate(data)) {
-      console.info('✓ Validation passed');
+      console.info('SUCCESS: Validation passed');
     } else {
-      console.error('✗ Validation failed');
+      console.error('ERROR: Validation failed');
       if (validate.errors) {
         for (const error of validate.errors) {
           console.error(`  ${error.instancePath} ${error.message}`);

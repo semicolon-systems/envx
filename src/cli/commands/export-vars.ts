@@ -17,7 +17,7 @@ const logger = createLogger('CLI.export-vars');
 export const exportVarsCommand = async (file: string, keyPath: string): Promise<void> => {
   try {
     if (!existsSync(file)) {
-      console.error(`✗ Error: Encrypted file not found: ${file}`);
+      console.error(`ERROR: Error: Encrypted file not found: ${file}`);
       process.exit(1);
     }
 
@@ -37,9 +37,9 @@ export const exportVarsCommand = async (file: string, keyPath: string): Promise<
     logger.error('export-vars', `Export failed: ${String(error)}`);
     
     if (error instanceof Error) {
-      console.error(`✗ Error: ${error.message}`);
+      console.error(`ERROR: Error: ${error.message}`);
     } else {
-      console.error(`✗ Error: ${String(error)}`);
+      console.error(`ERROR: Error: ${String(error)}`);
     }
     
     process.exit(1);

@@ -18,7 +18,7 @@ export const encryptCommand = async (
 ): Promise<void> => {
   try {
     if (!existsSync(file)) {
-      console.error(`✗ Error: Input file not found: ${file}`);
+      console.error(`ERROR: Error: Input file not found: ${file}`);
       process.exit(1);
     }
 
@@ -30,15 +30,15 @@ export const encryptCommand = async (
     const outputPath = output || file.replace(/\.env$/, '.envx');
     const varCount = Object.keys(result.values).length;
     
-    console.info(`✓ Encrypted ${varCount} variable${varCount !== 1 ? 's' : ''} to ${outputPath}`);
+    console.info(`SUCCESS: Encrypted ${varCount} variable${varCount !== 1 ? 's' : ''} to ${outputPath}`);
     logger.info('encrypt', `Encryption successful: ${varCount} variables`);
   } catch (error) {
     logger.error('encrypt', `Encryption failed: ${String(error)}`);
     
     if (error instanceof Error) {
-      console.error(`✗ Error: ${error.message}`);
+      console.error(`ERROR: Error: ${error.message}`);
     } else {
-      console.error(`✗ Error: ${String(error)}`);
+      console.error(`ERROR: Error: ${String(error)}`);
     }
     
     process.exit(1);

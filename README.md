@@ -20,24 +20,24 @@ envx enables teams to safely commit encrypted secrets into version control using
 ## Key Features
 
 - 🔐 **Military-Grade Encryption**: AES-256-GCM with 128-bit authentication tags
-- 🔑 **Memory-Hard KDF**: Argon2id resists GPU/ASIC attacks (scrypt fallback)
-- 📦 **Dual Interface**: Use as CLI tool or programmatic Node.js library
-- 🎯 **Zero Plaintext Leaks**: Secrets never touch disk unencrypted
-- ✅ **Schema Validation**: JSON Schema ensures file integrity
-- 🧪 **Battle-Tested**: Comprehensive test suite with edge cases
-- 📚 **TypeScript Native**: Full type safety and IDE autocomplete
-- 🚀 **CI/CD Ready**: GitHub Actions, GitLab CI, CircleCI examples
+- **Memory-Hard KDF**: Argon2id resists GPU/ASIC attacks (scrypt fallback)
+- **Dual Interface**: Use as CLI tool or programmatic Node.js library
+- **Zero Plaintext Leaks**: Secrets never touch disk unencrypted
+- **Schema Validation**: JSON Schema ensures file integrity
+- **Battle-Tested**: Comprehensive test suite with edge cases
+- **TypeScript Native**: Full type safety and IDE autocomplete
+- **CI/CD Ready**: GitHub Actions, GitLab CI, CircleCI examples
 
 ## Security Guarantees
 
-✅ **What envx protects against:**
+**What envx protects against:**
 - Accidental commit of plaintext secrets to Git
 - Unauthorized repository access without the encryption key
 - Data tampering (authenticated encryption catches modifications)
 - Weak passwords (Argon2id with 64MB memory cost)
 - Rainbow table attacks (random 128-bit salt per key)
 
-❌ **What envx does NOT protect against:**
+**What envx does NOT protect against:**
 - Compromise of the encryption key itself
 - Memory dumps of running processes
 - Side-channel attacks (timing, cache, power analysis)
@@ -112,7 +112,7 @@ envx check .envx --schema .env.schema.json
 |---------|-------------|---------|
 | `envx init [--mode random\|password]` | Generate encryption key | `envx init --mode password` |
 | `envx encrypt <file> [--output path]` | Encrypt .env file | `envx encrypt .env.production` |
-| `envx decrypt <file>` | Decrypt to stdout (⚠️ visible) | `envx decrypt .envx \| grep API_KEY` |
+| `envx decrypt <file>` | Decrypt to stdout (WARNING: visible) | `envx decrypt .envx \| grep API_KEY` |
 | `envx show <file>` | Display as JSON | `envx show .envx \| jq .DATABASE_URL` |
 | `envx run -- <command>` | Run with decrypted env | `envx run -- node server.js` |
 | `envx verify <file>` | Check file integrity | `envx verify production.envx` |
@@ -257,13 +257,13 @@ jobs:
 
 | Scenario | Protected? | Mitigation |
 |----------|-----------|------------|
-| Accidental `.env` commit | ✅ Yes | Encrypted file is safe to commit |
-| Repository leak/public | ✅ Yes | Ciphertext is useless without key |
-| Weak password | ✅ Yes | Argon2id makes brute-force impractical |
-| Data tampering | ✅ Yes | Auth tag verification catches changes |
-| Key compromise | ❌ No | Attacker can decrypt everything |
-| Memory dump | ❌ No | Key/plaintext may be in RAM |
-| Malicious CI | ❌ No | CI has key and can exfiltrate |
+| Accidental `.env` commit | Yes | Encrypted file is safe to commit |
+| Repository leak/public | Yes | Ciphertext is useless without key |
+| Weak password | Yes | Argon2id makes brute-force impractical |
+| Data tampering | Yes | Auth tag verification catches changes |
+| Key compromise | No | Attacker can decrypt everything |
+| Memory dump | No | Key/plaintext may be in RAM |
+| Malicious CI | No | CI has key and can exfiltrate |
 
 ### Best Practices
 
@@ -297,13 +297,13 @@ jobs:
 
 | Feature | envx | git-crypt | Blackbox | SOPS | Vault |
 |---------|------|-----------|----------|------|-------|
-| No external deps | ✅ | ❌ (gpg) | ❌ (gpg) | ❌ (kms) | ❌ (server) |
-| Per-value encryption | ✅ | ❌ | ❌ | ✅ | N/A |
-| Authenticated encryption | ✅ | ❌ | ❌ | ✅ | ✅ |
-| TypeScript API | ✅ | ❌ | ❌ | ❌ | ✅ |
-| Transparent Git | ❌ | ✅ | ✅ | ❌ | ❌ |
-| Key rotation | ✅ | ❌ | ❌ | ✅ | ✅ |
-| Self-hosted | ✅ | ✅ | ✅ | ✅ | Partial |
+| No external deps | Yes | No (gpg) | No (gpg) | No (kms) | No (server) |
+| Per-value encryption | Yes | No | No | Yes | N/A |
+| Authenticated encryption | Yes | No | No | Yes | Yes |
+| TypeScript API | Yes | No | No | No | Yes |
+| Transparent Git | No | Yes | Yes | No | No |
+| Key rotation | Yes | No | No | Yes | Yes |
+| Self-hosted | Yes | Yes | Yes | Yes | Partial |
 
 ## Troubleshooting
 

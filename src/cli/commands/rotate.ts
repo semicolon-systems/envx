@@ -30,17 +30,17 @@ export const rotateCommand = async (
   try {
     // Validate inputs
     if (!existsSync(oldKeyPath)) {
-      console.error(`✗ Error: Old key file not found: ${oldKeyPath}`);
+      console.error(`ERROR: Error: Old key file not found: ${oldKeyPath}`);
       process.exit(1);
     }
 
     if (!existsSync(envxPath)) {
-      console.error(`✗ Error: Encrypted file not found: ${envxPath}`);
+      console.error(`ERROR: Error: Encrypted file not found: ${envxPath}`);
       process.exit(1);
     }
 
     if (existsSync(newKeyPath)) {
-      console.error(`✗ Error: New key file already exists: ${newKeyPath}`);
+      console.error(`ERROR: Error: New key file already exists: ${newKeyPath}`);
       process.exit(1);
     }
 
@@ -72,10 +72,10 @@ export const rotateCommand = async (
     // Clean up temporary file
     unlinkSync(tempEnvFile);
     
-    console.info('\n✓ Key rotation complete');
+    console.info('\nSUCCESS: Key rotation complete');
     console.info(`  New key: ${newKeyPath}`);
     console.info(`  Updated: ${envxPath}`);
-    console.info('\n⚠️  Next steps:');
+    console.info('\nNext steps:');
     console.info('  1. Update your deployment/CI with the new key');
     console.info('  2. Verify decryption works: envx verify ${envxPath}');
     console.info('  3. Securely delete the old key: shred -u ${oldKeyPath}');
@@ -94,9 +94,9 @@ export const rotateCommand = async (
     logger.error('rotate', `Rotation failed: ${String(error)}`);
     
     if (error instanceof Error) {
-      console.error(`\n✗ Error: ${error.message}`);
+      console.error(`\nERROR: Error: ${error.message}`);
     } else {
-      console.error(`\n✗ Error: ${String(error)}`);
+      console.error(`\nERROR: Error: ${String(error)}`);
     }
     
     process.exit(1);

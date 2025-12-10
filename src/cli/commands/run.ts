@@ -24,12 +24,12 @@ export const runCommand = async (
 ): Promise<void> => {
   try {
     if (cmdArgs.length === 0) {
-      console.error('✗ Error: No command specified');
+      console.error('ERROR: Error: No command specified');
       process.exit(1);
     }
 
     if (!existsSync(envxPath)) {
-      console.error(`✗ Error: Encrypted file not found: ${envxPath}`);
+      console.error(`ERROR: Error: Encrypted file not found: ${envxPath}`);
       process.exit(1);
     }
 
@@ -53,7 +53,7 @@ export const runCommand = async (
     
     child.on('error', (err) => {
       logger.error('run', `Failed to spawn command: ${err.message}`);
-      console.error(`✗ Error: Failed to execute '${cmd}': ${err.message}`);
+      console.error(`ERROR: Error: Failed to execute '${cmd}': ${err.message}`);
       process.exit(1);
     });
 
@@ -70,9 +70,9 @@ export const runCommand = async (
     logger.error('run', `Run command failed: ${String(error)}`);
     
     if (error instanceof Error) {
-      console.error(`✗ Error: ${error.message}`);
+      console.error(`ERROR: Error: ${error.message}`);
     } else {
-      console.error(`✗ Error: ${String(error)}`);
+      console.error(`ERROR: Error: ${String(error)}`);
     }
     
     process.exit(1);

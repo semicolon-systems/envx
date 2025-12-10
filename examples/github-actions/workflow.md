@@ -9,10 +9,10 @@ This guide demonstrates how to securely use envx to manage secrets in GitHub Act
 **Solution:** Commit encrypted `.envx` file to Git, store only the encryption key in GitHub Secrets, and decrypt at runtime.
 
 **Benefits:**
-- ✅ Version control your secrets (encrypted)
-- ✅ Audit trail via Git history
-- ✅ Easy rotation (just update `.envx` file)
-- ✅ One GitHub Secret instead of many
+- Version control your secrets (encrypted)
+- Audit trail via Git history
+- Easy rotation (just update `.envx` file)
+- One GitHub Secret instead of many
 
 ## Prerequisites
 
@@ -52,7 +52,7 @@ envx encrypt .env
 
 # Verify encryption
 envx verify .envx
-# ✓ Valid .envx file: 5 variables
+# Valid .envx file: 5 variables
 
 # Preview decrypted values
 envx show .envx
@@ -276,7 +276,7 @@ steps:
 
 ## Security Best Practices
 
-### ✅ DO
+### DO
 
 1. **Use separate keys per environment:**
    ```bash
@@ -315,7 +315,7 @@ steps:
    runs-on: [self-hosted, ephemeral]
    ```
 
-### ❌ DON'T
+### DON'T
 
 1. **Don't print decrypted secrets:**
    ```yaml
@@ -533,14 +533,14 @@ mv .envx.key.new .envx.key
 
 ## Best Practices
 
-✅ Do:
+Do:
 - Keep `.envx.key` out of version control
 - Store key in GitHub Secrets
 - Use ephemeral runners when possible
 - Rotate keys periodically
 - Audit access to secrets
 
-❌ Don't:
+Don't:
 - Commit `.envx.key` to repo
 - Print env vars in logs
 - Use secrets in branch names or PR descriptions

@@ -72,9 +72,9 @@ npm run lint
 
 **Expected Output:**
 ```
-✓ TypeScript compilation successful
-✓ 14 tests passing
-✓ No lint errors
+- TypeScript compilation successful
+- 14 tests passing
+- No lint errors
 ```
 
 ### Project Structure Quick Reference
@@ -218,12 +218,12 @@ Add real-world attack scenarios and mitigation strategies.
 
 **Before Submitting:**
 
-1. ✅ All tests pass: `npm test`
-2. ✅ Code builds successfully: `npm run build`
-3. ✅ Linter passes: `npm run lint`
-4. ✅ Code formatted: `npm run format`
-5. ✅ Documentation updated (if adding features)
-6. ✅ Tests added (if changing behavior)
+1. All tests pass: `npm test`
+2. Code builds successfully: `npm run build`
+3. Linter passes: `npm run lint`
+4. Code formatted: `npm run format`
+5. Documentation updated (if adding features)
+6. Tests added (if changing behavior)
 
 **PR Title Format:**
 ```
@@ -294,22 +294,22 @@ private keyCache?: Buffer;
 
 **Type Safety:**
 ```typescript
-// ✅ DO: Use explicit types
+// DO: Use explicit types
 function decrypt(ciphertext: Buffer, key: Buffer): Buffer {
   // ...
 }
 
-// ❌ DON'T: Use 'any'
+// DON'T: Use 'any'
 function decrypt(ciphertext: any, key: any): any {
   // ...
 }
 
-// ✅ DO: Use strict null checks
+// DO: Use strict null checks
 function findKey(keyPath?: string): Buffer | null {
   // ...
 }
 
-// ❌ DON'T: Ignore potential nulls
+// DON'T: Ignore potential nulls
 function findKey(keyPath: string): Buffer {
   return fs.readFileSync(keyPath);  // Crashes if file missing
 }
@@ -317,19 +317,19 @@ function findKey(keyPath: string): Buffer {
 
 **Error Handling:**
 ```typescript
-// ✅ DO: Use custom error types
+// DO: Use custom error types
 if (!validKey) {
   throw new MissingKeyError('.envx.key');
 }
 
-// ✅ DO: Provide context in errors
+// DO: Provide context in errors
 try {
   decrypt(ciphertext, key);
 } catch (error) {
   throw new DecryptionError(`Failed to decrypt ${filePath}: ${error.message}`);
 }
 
-// ❌ DON'T: Swallow errors silently
+// DON'T: Swallow errors silently
 try {
   decrypt(ciphertext, key);
 } catch (error) {
@@ -367,7 +367,7 @@ npm run format
 
 **Buffer Handling:**
 ```typescript
-// ✅ DO: Wipe sensitive buffers
+// DO: Wipe sensitive buffers
 let key: Buffer | null = null;
 try {
   key = fs.readFileSync('.envx.key');
@@ -376,28 +376,28 @@ try {
   if (key) wipeBuffer(key);
 }
 
-// ❌ DON'T: Leave sensitive data in memory
+// DON'T: Leave sensitive data in memory
 const key = fs.readFileSync('.envx.key');
 // ... use key without cleanup ...
 ```
 
 **Logging:**
 ```typescript
-// ✅ DO: Sanitize logs
+// DO: Sanitize logs
 logger.info('encryption_complete', { file: '.envx', count: 10 });
 
-// ❌ DON'T: Log secrets
+// DON'T: Log secrets
 logger.info('encrypted', { DATABASE_URL: 'postgres://...' });
 ```
 
 **Validation:**
 ```typescript
-// ✅ DO: Validate all inputs
+// DO: Validate all inputs
 if (key.length !== KEY_LENGTH) {
   throw new ValidationError(`Invalid key length: expected ${KEY_LENGTH}, got ${key.length}`);
 }
 
-// ❌ DON'T: Trust user input
+// DON'T: Trust user input
 const key = fs.readFileSync(keyPath);  // What if file is empty?
 ```
 
@@ -680,7 +680,7 @@ describe('ChaCha20-Poly1305', () => {
 
 ### Reporting Security Vulnerabilities
 
-🔒 **DO NOT** open public GitHub issues for security vulnerabilities.
+**DO NOT** open public GitHub issues for security vulnerabilities.
 
 **Instead:**
 1. Create a private security advisory on GitHub
@@ -767,8 +767,8 @@ We follow [Semantic Versioning](https://semver.org/):
 **Error:** `Cannot find module './crypto'`
 ```bash
 # Solution: Ensure all imports use relative paths
-# ✅ import { encrypt } from './crypto';
-# ❌ import { encrypt } from 'crypto';
+# import { encrypt } from './crypto';
+# import { encrypt } from 'crypto';
 ```
 
 **Error:** `TS2345: Argument of type 'X' is not assignable to parameter of type 'Y'`
@@ -842,6 +842,6 @@ const _unused = getValue();  // Explicitly marked as intentionally unused
 
 ---
 
-**Thank you for contributing to envx!** 🎉
+**Thank you for contributing to envx!**
 
 Your contributions make this project better for everyone. Whether you're fixing a typo, adding a feature, or improving documentation, every contribution is valued.

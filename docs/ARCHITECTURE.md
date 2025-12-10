@@ -100,12 +100,12 @@ export async function encryptCommand(inputPath: string, options: Options) {
   
   // 3. User-friendly output
   logger.info('success', { count: Object.keys(result.values).length });
-  console.log(`✓ Encrypted ${inputPath} → ${options.output}`);
+  console.log(`SUCCESS: Encrypted ${inputPath} → ${options.output}`);
 }
 ```
 
 **Design Decisions:**
-- **User-friendly output:** Use symbols (✓/✗), clear messages, avoid jargon
+- **User-friendly output:** Use clear status indicators, clear messages, avoid jargon
 - **Progressive disclosure:** Common options in `--help`, advanced in docs
 - **Safe defaults:** If optional param omitted, choose secure/conservative option
 - **Exit codes:** 0 for success, 1 for user error, 2 for system error
@@ -1022,10 +1022,10 @@ User Password Input
 │  └────────────────┘  └────────────────┘                 │
 │                                                          │
 │  Assumptions:                                            │
-│  ✗ Repository may be leaked/public                      │
-│  ✗ .envx file may be tampered with                      │
-│  ✓ Encryption key remains secret                        │
-│  ✓ Tampering will be detected (MAC)                     │
+│  X Repository may be leaked/public                      │
+│  X .envx file may be tampered with                      │
+│  ✔ Encryption key remains secret                        │
+│  ✔ Tampering will be detected (MAC)                     │
 └──────────────────────────────────────────────────────────┘
 ```
 
@@ -1033,15 +1033,15 @@ User Password Input
 
 | Threat | Severity | Mitigated? | Mechanism |
 |--------|----------|-----------|-----------|
-| Accidental `.env` commit | HIGH | ✅ YES | Encryption before commit |
-| Public repo exposure | HIGH | ✅ YES | AES-256-GCM encryption |
-| Weak password | MEDIUM | ✅ YES | Argon2id memory-hard KDF |
-| Ciphertext tampering | HIGH | ✅ YES | GCM authentication tag |
-| Rainbow tables | MEDIUM | ✅ YES | Random 128-bit salt |
-| Key compromise | CRITICAL | ❌ NO | Outside scope (key IS secret) |
-| Memory dump | MEDIUM | ❌ NO | Node.js limitation |
-| Side-channel | LOW | ⚠️ PARTIAL | OpenSSL mitigations |
-| Social engineering | HIGH | ❌ NO | Human factor |
+| Accidental `.env` commit | HIGH | YES | Encryption before commit |
+| Public repo exposure | HIGH | YES | AES-256-GCM encryption |
+| Weak password | MEDIUM | YES | Argon2id memory-hard KDF |
+| Ciphertext tampering | HIGH | YES | GCM authentication tag |
+| Rainbow tables | MEDIUM | YES | Random 128-bit salt |
+| Key compromise | CRITICAL | NO | Outside scope (key IS secret) |
+| Memory dump | MEDIUM | NO | Node.js limitation |
+| Side-channel | LOW | PARTIAL | OpenSSL mitigations |
+| Social engineering | HIGH | NO | Human factor |
 
 ## Testing Strategy
 

@@ -63,7 +63,7 @@ export const initCommand = async (mode: string, keyPath: string): Promise<void> 
       // Wipe password buffer
       passwordBuf.fill(0);
       
-      console.info(`✓ Key initialized at ${keyPath}`);
+      console.info(`SUCCESS: Key initialized at ${keyPath}`);
       console.info(`  Salt: ${salt}`);
       console.info(`  KDF: ${kdfMeta?.type}`);
       
@@ -74,13 +74,13 @@ export const initCommand = async (mode: string, keyPath: string): Promise<void> 
         console.info(`  Params: N=${kdfMeta.params.N}, r=${kdfMeta.params.r}, p=${kdfMeta.params.p}`);
       }
       
-      console.info('\n⚠️  Keep this key file secure and backed up.');
-      console.info('⚠️  The salt is public, but the key must remain secret.');
+      console.info('\nWARNING: Keep this key file secure and backed up.');
+      console.info('WARNING: The salt is public, but the key must remain secret.');
     } else {
       const { keyPath: kp } = await envx.init('random');
-      console.info(`✓ Random key initialized at ${kp}`);
-      console.info('\n⚠️  This key is cryptographically random.');
-      console.info('⚠️  Back it up securely - it cannot be recovered.');
+      console.info(`SUCCESS: Random key initialized at ${kp}`);
+      console.info('\nWARNING: This key is cryptographically random.');
+      console.info('WARNING: Back it up securely - it cannot be recovered.');
     }
 
     logger.info('init', 'Key initialization successful');
@@ -88,9 +88,9 @@ export const initCommand = async (mode: string, keyPath: string): Promise<void> 
     logger.error('init', `Initialization failed: ${String(error)}`);
     
     if (error instanceof Error) {
-      console.error(`✗ Error: ${error.message}`);
+      console.error(`ERROR: Error: ${error.message}`);
     } else {
-      console.error(`✗ Error: ${String(error)}`);
+      console.error(`ERROR: Error: ${String(error)}`);
     }
     
     process.exit(1);

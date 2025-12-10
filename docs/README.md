@@ -11,10 +11,10 @@ envx lets you commit encrypted secrets safely into version control using XChaCha
 ## Features
 
 - 🔐 **XChaCha20-Poly1305**: AEAD authenticated encryption with per-value nonces
-- 🔑 **Argon2id KDF**: Modern password-based key derivation (with scrypt fallback)
-- 📦 **Library + CLI**: Use as npm module or command-line tool
-- 🎯 **Zero-disk plaintext**: Secrets never touch disk unless explicitly written
-- ✅ **Strict validation**: JSON Schema-based format validation
+- **Argon2id KDF**: Modern password-based key derivation (with scrypt fallback)
+- **Library + CLI**: Use as npm module or command-line tool
+- **Zero-disk plaintext**: Secrets never touch disk unless explicitly written
+- **Strict validation**: JSON Schema-based format validation
 - 🧪 **Fully tested**: Comprehensive test suite included
 - 📚 **Production-ready**: TypeScript, ESLint, Prettier, CI
 
@@ -103,13 +103,13 @@ const { valid } = envx.verify('.envx');
 
 ### Threat Model
 
-✅ **Protects against:**
+**Protects against:**
 - Accidental exposure of secrets in Git history
 - Unauthorized access if repository is compromised
 - Dictionary attacks (via Argon2id)
 - Tampering (via authenticated encryption)
 
-❌ **Does not protect against:**
+**Does not protect against:**
 - Key compromise
 - Memory attacks against running processes
 - Side-channel attacks
