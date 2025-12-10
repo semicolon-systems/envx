@@ -29,7 +29,7 @@ export class Envx {
       const key = randomBytes(32);
       writeFileSync(this.keyPath, key, { mode: 0o600 });
       wipeBuffer(key);
-      logger.info('Initialized random key', { path: this.keyPath });
+      logger.info('Initialized random key');
       return { keyPath: this.keyPath };
     }
 
@@ -40,7 +40,7 @@ export class Envx {
     const { key, salt, meta: kdfMeta } = await deriveKey(password, 'argon2id');
     writeFileSync(this.keyPath, key, { mode: 0o600 });
     wipeBuffer(key);
-    logger.info('Initialized password-derived key', { path: this.keyPath });
+    logger.info('Initialized password-derived key');
     return { keyPath: this.keyPath, salt: salt.toString('base64'), kdfMeta };
   }
 
@@ -91,7 +91,7 @@ export class Envx {
 
     const path = outputPath ?? envFile.replace(/\.env$/, '.envx');
     writeFileSync(path, JSON.stringify(envxFile, null, 2), { mode: 0o600 });
-    logger.info('Encrypted environment file', { output: path, count: Object.keys(values).length });
+    logger.info('Encrypted environment file');
 
     return envxFile;
   }
@@ -107,7 +107,7 @@ export class Envx {
     const plaintext = await decryptValues(parsed.values, parsed.nonce_map, key);
     wipeBuffer(key);
 
-    logger.info('Decrypted environment file', { count: Object.keys(plaintext).length });
+    logger.info('Decrypted environment file');
 
     return plaintext;
   }
@@ -159,12 +159,7 @@ export class Envx {
 
     writeFileSync(envxPath, JSON.stringify(envxFile, null, 2), { mode: 0o600 });
 
-    logger.info('Rotated encryption key', {
-      oldKey: oldKeyPath,
-      newKey: newKeyPath,
-      file: envxPath,
-      count: Object.keys(values).length,
-    });
+    logger.info('Rotated encryption key');
   }
 
   verify(envxPath: string): { valid: boolean; details: string } {

@@ -30,19 +30,13 @@ export const encryptValues = async (
     for (const [name, value] of Object.entries(plaintext)) {
       const valueBuf = Buffer.from(value, 'utf8');
 
-      let nonce: Buffer;
-      let nonceB64: string;
-      let attempts = 0;
+      const nonce = randomBytes(12);
+      const nonceB64 = nonce.toString('base64');
 
-      do {
-        nonce = randomBytes(12);
-        nonceB64 = nonce.toString('base64');
-        attempts++;
-
-        if (attempts > 100) {
-          throw new EncryptionError('Failed to generate unique nonce after 100 attempts');
-        }
-      } while (usedNonces.has(nonceB64));
+      if (usedNonces.has(nonceB64)) {
+        wipeBuffer(valueBuf);
+        throw new EncryptionError('Nonce collision detected during encryption');
+      }
 
       usedNonces.add(nonceB64);
 
@@ -58,7 +52,7 @@ export const encryptValues = async (
       wipeBuffer(valueBuf);
     }
 
-    logger.debug('Encrypted values', { count: Object.keys(values).length });
+    logger.info('Encrypted values');
 
     return { nonceMap, values };
   } catch (e) {

@@ -15,7 +15,7 @@ export const checkCommand = async (file: string, schemaPath: string | undefined)
     if (!schemaPath) {
       parseEnvx(envxContent);
       console.log('Valid envx format');
-      logger.info('Format validation passed', { file });
+      logger.info('Format validation passed');
       process.exit(0);
       return;
     }
@@ -34,7 +34,7 @@ export const checkCommand = async (file: string, schemaPath: string | undefined)
 
     if (validate(data)) {
       console.log('Validation passed');
-      logger.info('Schema validation passed', { file, schema: schemaPath });
+      logger.info('Schema validation passed');
       process.exit(0);
     } else {
       console.error('Validation failed:');
@@ -43,12 +43,12 @@ export const checkCommand = async (file: string, schemaPath: string | undefined)
           console.error(`  ${error.instancePath} ${error.message}`);
         }
       }
-      logger.error('Schema validation failed', { file, errors: validate.errors });
+      logger.error('Schema validation failed');
       process.exit(1);
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    logger.error('Check command failed', { error: message });
+    logger.error('Check command failed');
     console.error(`Error: ${message}`);
     process.exit(1);
   }

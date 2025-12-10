@@ -19,12 +19,12 @@ export const decryptValues = async (
   }
 
   const result: Record<string, string> = {};
-  const errors: string[] = [];
+  const errors: Array<{ key: string; reason: string }> = [];
 
   for (const [name, cipherBase64] of Object.entries(encrypted)) {
     const nonceBase64 = nonceMap[name];
     if (!nonceBase64) {
-      errors.push(`Missing nonce for key: ${name}`);
+      errors.push({ key: name, reason: 'Missing nonce' });
       continue;
     }
 
@@ -36,9 +36,7 @@ export const decryptValues = async (
       combined = Buffer.from(cipherBase64, 'base64');
 
       if (combined.length < 16) {
-        throw new DecryptionError(`Invalid ciphertext length for key: ${name}`, {
-          context: { minLength: 16, actual: combined.length },
-        });
+        throw new DecryptionError('Invalid ciphertext length');
       }
 
       const tag = combined.subarray(0, 16);
@@ -53,8 +51,8 @@ export const decryptValues = async (
 
       wipeBuffer(plaintext);
     } catch (error) {
-      const msg = error instanceof Error ? error.message : String(error);
-      errors.push(`Failed to decrypt ${name}: ${msg}`);
+      const reason = error instanceof DecryptionError ? error.message : 'Authentication failed';
+      errors.push({ key: name, reason });
     } finally {
       if (nonce) wipeBuffer(nonce);
       if (combined) wipeBuffer(combined);
@@ -63,11 +61,11 @@ export const decryptValues = async (
 
   if (errors.length > 0) {
     throw new DecryptionError('Decryption failed for one or more values', {
-      context: { errors, failedCount: errors.length, totalCount: Object.keys(encrypted).length },
+      context: { failedCount: errors.length, totalCount: Object.keys(encrypted).length },
     });
   }
 
-  logger.debug('Decrypted values', { count: Object.keys(result).length });
+  logger.info('Decrypted values');
 
   return result;
 };

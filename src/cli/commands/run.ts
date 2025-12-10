@@ -1,6 +1,7 @@
 import { spawn } from 'child_process';
 import { Envx } from '../../lib/envx';
 import { logger } from '../../utils/logger';
+import { wipeRecord } from '../../utils/memory';
 
 export const runCommand = async (
   cmdArgs: string[],
@@ -20,22 +21,23 @@ export const runCommand = async (
     const cmd = cmdArgs[0];
     const args = cmdArgs.slice(1);
 
-    logger.info('Executing command with decrypted environment', { command: cmd });
+    logger.info('Executing command with decrypted environment');
 
     const child = spawn(cmd, args, { env, stdio: 'inherit' });
 
     child.on('error', (err) => {
-      logger.error('Command execution failed', { error: err.message });
+      logger.error('Command execution failed');
       console.error(`Error: ${err.message}`);
       process.exit(1);
     });
 
     child.on('exit', (code: number | null) => {
+      wipeRecord(Object.fromEntries(Object.entries(values).map(([k, v]) => [k, Buffer.from(v)])));
       process.exit(code ?? 0);
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    logger.error('Run command failed', { error: message });
+    logger.error('Run command failed');
     console.error(`Error: ${message}`);
     process.exit(1);
   }

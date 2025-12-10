@@ -21,7 +21,12 @@ export const initCommand = async (mode: string, keyPath: string): Promise<void> 
     if (mode === 'password') {
       const password = await promptPassword('Enter password for key derivation: ');
 
-      if (!password || password.length < 12) {
+      if (!password) {
+        logger.error('Password cannot be empty');
+        process.exit(1);
+      }
+
+      if (password.length < 12) {
         logger.error('Password must be at least 12 characters');
         process.exit(1);
       }
@@ -32,10 +37,13 @@ export const initCommand = async (mode: string, keyPath: string): Promise<void> 
       console.log(`Salt: ${salt}`);
 
       logger.info('Password-based key initialized successfully');
-    } else {
+    } else if (mode === 'random') {
       const { keyPath: kp } = await envx.init('random');
       console.log(`Key initialized at ${kp}`);
       logger.info('Random key initialized successfully');
+    } else {
+      logger.error('Invalid mode. Use "random" or "password"');
+      process.exit(1);
     }
 
     process.exit(0);

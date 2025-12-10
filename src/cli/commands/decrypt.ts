@@ -16,7 +16,7 @@ export const decryptCommand = async (
       const lines = Object.entries(values).map(([k, v]) => `${k}=${v}`);
       writeFileSync(output, lines.join('\n'), { mode: 0o600 });
       console.log(`Decrypted to ${output}`);
-      logger.warn('Plaintext written to disk', { path: output });
+      logger.warn('Plaintext written to disk');
     } else {
       for (const [key, value] of Object.entries(values)) {
         console.log(`${key}=${value}`);
@@ -26,7 +26,7 @@ export const decryptCommand = async (
     process.exit(0);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    logger.error('Decryption failed', { error: message });
+    logger.error('Decryption failed');
     console.error(`Error: ${message}`);
     process.exit(1);
   }

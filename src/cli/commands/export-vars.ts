@@ -11,11 +11,11 @@ export const exportVarsCommand = async (file: string, keyPath: string): Promise<
       console.log(`export ${key}='${escaped}'`);
     }
 
-    logger.info('Exported environment variables', { count: Object.keys(values).length });
+    logger.info('Exported environment variables');
     process.exit(0);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    logger.error('Export command failed', { error: message });
+    logger.error('Export command failed');
     console.error(`Error: ${message}`);
     process.exit(1);
   }
