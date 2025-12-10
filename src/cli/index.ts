@@ -52,9 +52,16 @@ program
   .command('run')
   .option('-k, --key <path>', 'key file path', '.envx.key')
   .option('-e, --envx <path>', 'envx file path', '.envx')
-  .argument('<command...>')
+  .argument('[command...]', 'command to run with environment variables')
   .description('Run command with decrypted env vars')
+  .allowUnknownOption(true)
   .action((cmdArgs: string[], opts: { key: string; envx: string }) => {
+    // If no command args, show error
+    if (!cmdArgs || cmdArgs.length === 0) {
+      console.error('Error: No command specified');
+      console.error('Usage: envx run [options] <command> [args...]');
+      process.exit(1);
+    }
     void runCommand(cmdArgs, opts.key, opts.envx);
   });
 

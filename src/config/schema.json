@@ -1,0 +1,72 @@
+{
+  "title": "envx file",
+  "type": "object",
+  "required": ["version", "cipher", "kdf", "nonce_map", "values"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "integer",
+      "const": 1
+    },
+    "cipher": {
+      "type": "string",
+      "enum": ["xchacha20-poly1305"]
+    },
+    "kdf": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "enum": ["argon2id", "scrypt", "none"] },
+        "salt": { "type": "string", "pattern": "^[A-Za-z0-9+/]+={0,2}$" },
+        "params": {
+          "type": "object",
+          "oneOf": [
+            {
+              "required": ["memory", "time", "parallelism"],
+              "properties": {
+                "memory": { "type": "integer", "minimum": 1 },
+                "time": { "type": "integer", "minimum": 1 },
+                "parallelism": { "type": "integer", "minimum": 1 }
+              },
+              "additionalProperties": false
+            },
+            {
+              "required": ["N", "r", "p", "dkLen"],
+              "properties": {
+                "N": { "type": "integer", "minimum": 1 },
+                "r": { "type": "integer", "minimum": 1 },
+                "p": { "type": "integer", "minimum": 1 },
+                "dkLen": { "type": "integer", "minimum": 1 }
+              },
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "nonce_map": {
+      "type": "object",
+      "propertyNames": { "type": "string", "minLength": 1 },
+      "patternProperties": {
+        "^.+$": { "type": "string", "pattern": "^[A-Za-z0-9+/]+={0,2}$" }
+      },
+      "additionalProperties": false
+    },
+    "values": {
+      "type": "object",
+      "propertyNames": { "type": "string", "minLength": 1 },
+      "patternProperties": {
+        "^.+$": { "type": "string", "pattern": "^[A-Za-z0-9+/]+={0,2}$" }
+      },
+      "additionalProperties": false
+    },
+    "meta": {
+      "type": "object",
+      "properties": {
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": true
+    }
+  }
+}

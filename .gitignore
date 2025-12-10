@@ -1,10 +1,28 @@
+# Encryption keys - NEVER COMMIT THESE
 .envx.key
-*.envx
+.envx.key.*
+
+# Build output
 dist/
+
+# Dependencies
 node_modules/
+
+# Environment files (plaintext)
 .env
+.env.*
 .env.local
+
+# OS files
 .DS_Store
+
+# Logs
 *.log
+
+# Test coverage
 coverage/
 .vitest-report/
+
+# Test directories
+test-e2e/
+

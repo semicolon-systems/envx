@@ -1,53 +1,33 @@
 # Changelog
 
-All notable changes to envx are documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
 ## [Unreleased]
 
-### Planned
+- Web UI for key management
+- Cloud storage backends (S3, GCS)
+- Hardware security key support
 
-- [ ] Web UI for key management
-- [ ] S3/GCS backend support
-- [ ] Hardware key support (YubiKey, TPM)
-- [ ] Multi-recipient encryption
-- [ ] Key rotation logging
+## [1.0.1] - 2025-12-10
+
+### Fixed
+- Key rotation now properly re-encrypts data with new key
+- Better CLI error messages and help text
+- Improved argument parsing for run command
+
+### Added
+- Comprehensive inline documentation
+- Detailed usage examples for common scenarios
+- Better logging throughout
 
 ## [1.0.0] - 2025-01-01
 
-### Added
+Initial release with:
 
-- Initial release
-- XChaCha20-Poly1305 AEAD encryption
-- Argon2id key derivation (with scrypt fallback)
-- CLI commands:
-  - `envx init`: Initialize project with random or password-based key
-  - `envx encrypt`: Encrypt .env file to .envx
-  - `envx decrypt`: Decrypt .envx file to stdout
-  - `envx show`: Display decrypted values (no disk write)
-  - `envx run`: Execute command with decrypted env vars
-  - `envx rotate`: Rotate encryption key
-  - `envx verify`: Verify .envx file integrity
-  - `envx check`: Validate against JSON schema
-  - `envx export-vars`: Export as shell variables (GitHub Actions compatible)
-- Library API (`Envx` class)
-- .envx JSON format with schema validation
-- Full test suite (KDF, encryption, format)
-- Documentation:
-  - User guide (README.md)
-  - Security policy (SECURITY.md)
-  - Contributing guidelines (CONTRIBUTING.md)
-  - Architecture documentation (ARCHITECTURE.md)
-- GitHub Actions CI pipeline
-- ESLint + Prettier enforcement
-- MIT license
-
-### Security
-
-- All cryptographic operations use authenticated encryption
-- Sensitive buffers are wiped after use
+- XChaCha20-Poly1305 authenticated encryption
+- Argon2id password-based key derivation (scrypt fallback)
+- CLI for encrypt, decrypt, show, run, rotate, verify
+- Library API with TypeScript types
+- JSON format with schema validation
+- Full test coverage
 - No plaintext secrets persisted to disk by default
 - Format validation prevents downgrade attacks
 - Per-value nonces enable secure random generation

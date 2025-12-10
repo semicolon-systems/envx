@@ -3,19 +3,17 @@
 [![CI](https://github.com/semicolon-systems/envx/workflows/CI/badge.svg)](https://github.com/semicolon-systems/envx/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Secure encrypted `.env` replacement for Git**
-
-envx lets you commit encrypted secrets safely into version control using AES-256-GCM authenticated encryption and Argon2id key derivation.
+Commit encrypted environment variables to Git without worry. envx uses AES-256-GCM and Argon2id to keep your secrets safe while letting you version control them alongside your code.
 
 ## Features
 
-- 🔐 **AES-256-GCM**: Authenticated encryption with per-value nonces
-- 🔑 **Argon2id KDF**: Modern password-based key derivation (with scrypt fallback)
-- 📦 **Library + CLI**: Use as npm module or command-line tool
-- 🎯 **Zero-disk plaintext**: Secrets never touch disk unless explicitly written
-- ✅ **Strict validation**: JSON Schema-based format validation
-- 🧪 **Fully tested**: Comprehensive test suite included
-- 📚 **Production-ready**: TypeScript, ESLint, Prettier, CI
+- 🔐 **Strong encryption** - AES-256-GCM with authenticated encryption
+- 🔑 **Password support** - Argon2id key derivation (scrypt fallback)
+- 📦 **Flexible** - Use as CLI tool or Node.js library
+- 🎯 **Safe by default** - Decrypted values stay in memory
+- ✅ **Validated** - JSON Schema ensures file integrity
+- 🧪 **Well tested** - Comprehensive test coverage
+- 📚 **TypeScript** - Full type definitions included
 
 ## Installation
 
@@ -34,35 +32,35 @@ npm install -g envx
 ### Initialize
 
 ```bash
-# Generate random key
+# Generate a random encryption key
 envx init
 
-# Or use password-based key derivation
+# Or derive from a password
 envx init --mode password
 ```
 
-This creates `.envx.key` (keep this secret and out of version control).
+This creates `.envx.key` - keep it secret and don't commit it.
 
 ### Encrypt
 
 ```bash
-# Encrypt .env file → .envx
+# Encrypt your .env file
 envx encrypt .env
 
-# Specify output
+# Save to specific output
 envx encrypt .env --output secrets.envx
 ```
 
 ### Decrypt & Run
 
 ```bash
-# Show decrypted values
+# View decrypted values
 envx show .envx
 
-# Run command with decrypted env vars
+# Run commands with decrypted environment
 envx run -- node app.js
 
-# Export for GitHub Actions
+# Export for CI/CD (GitHub Actions, etc.)
 envx export-vars .envx
 ```
 
@@ -98,32 +96,33 @@ console.log(secrets);
 const { valid } = envx.verify('.envx');
 ```
 
-## Security Model
+## Security
 
-### Cryptography
+### How it works
 
 **Encryption:** AES-256-GCM
-- AEAD cipher with 256-bit keys
-- 12-byte random nonce per value
-- 16-byte authentication tag
-- Detects ciphertext tampering
+- Authenticated encryption with 256-bit keys
+- Random 12-byte nonce per value
+- 16-byte authentication tag detects tampering
 
-**Key Derivation:** Argon2id (primary) / scrypt (fallback)
-- Argon2id: 65536 KB memory, 3 time cost, 1 parallelism
-- scrypt: N=2^15, r=8, p=1
+**Key Derivation:** Argon2id (with scrypt fallback)
+- Argon2id: 64 MB memory, 3 iterations
+- scrypt: N=2^15, r=8, p=1 (fallback)
 - Random 16-byte salt per key
 
-### What envx protects against:
-- ✅ Accidental exposure of secrets in Git history
-- ✅ Unauthorized access if repository is compromised
-- ✅ Dictionary attacks (via Argon2id)
-- ✅ Tampering (via authenticated encryption)
+### What envx protects
 
-### What envx does NOT protect against:
-- ❌ Key compromise
-- ❌ Memory attacks against running processes
+- ✅ Accidental secret leaks in Git
+- ✅ Unauthorized access without key
+- ✅ Tampering detection
+- ✅ Weak passwords (Argon2id)
+
+### What it doesn't protect
+
+- ❌ Compromised encryption keys
+- ❌ Memory dumps of running processes
 - ❌ Side-channel attacks
-- ❌ Keylogging during input
+- ❌ Keyloggers
 
 ## .envx Format
 
@@ -197,29 +196,30 @@ jobs:
 
 ## Troubleshooting
 
-**Q: "Key file not found"**
+**"Key file not found"**
 ```bash
-# Generate new key
-envx init
+envx init  # Generate a new key
 ```
 
-**Q: "Failed to decrypt - MAC verification failed"**
-- File is corrupted or tampered with
-- Using wrong key
-- Verify file: `envx verify .envx`
+**"Failed to decrypt - MAC verification failed"**
 
-**Q: Can I use password-based encryption?**
+The file might be corrupted or you're using the wrong key. Try:
+```bash
+envx verify .envx
+```
 
-Yes: `envx init --mode password` derives key from password using Argon2id.
+**Using passwords instead of random keys?**
+
+Yes - `envx init --mode password` derives keys from passwords using Argon2id.
 
 ## Contributing
 
-Contributions are welcome! Please see [CONTRIBUTING.md](./docs/CONTRIBUTING.md) for guidelines.
+We welcome contributions! Check out [CONTRIBUTING.md](./docs/CONTRIBUTING.md) to get started.
 
 ## License
 
 MIT © Semicolon Systems
 
-## Security Contact
+## Security
 
-Found a vulnerability? See [SECURITY.md](./docs/SECURITY.md) for reporting guidelines.
+Found a security issue? Email us at security@semicolon-systems.dev - see [SECURITY.md](./docs/SECURITY.md) for details.

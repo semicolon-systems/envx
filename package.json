@@ -1,7 +1,7 @@
 {
-  "name": "envx",
-  "version": "1.0.0",
-  "description": "Secure encrypted .env replacement using XChaCha20-Poly1305 and Argon2id",
+  "name": "envx-secure",
+  "version": "1.0.1",
+  "description": "Commit encrypted .env files to Git using AES-256-GCM",
   "license": "MIT",
   "type": "commonjs",
   "main": "dist/index.js",
@@ -31,12 +31,14 @@
   ],
   "keywords": [
     "env",
+    "environment",
+    "secrets",
     "encryption",
-    "xchacha20",
-    "argon2id",
-    "scrypt",
     "security",
-    "cli"
+    "dotenv",
+    "config",
+    "aes-gcm",
+    "argon2"
   ],
   "engines": {
     "node": ">=18"
