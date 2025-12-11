@@ -286,5 +286,3 @@ All errors:
 - MAC verification
 
 ---
-
-**Last updated:** 2025-01-01
