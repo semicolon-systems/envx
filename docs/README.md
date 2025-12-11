@@ -6,11 +6,11 @@
 
 **Secure encrypted `.env` replacement for Git**
 
-envx lets you commit encrypted secrets safely into version control using XChaCha20-Poly1305 authenticated encryption and Argon2id key derivation.
+envx lets you commit encrypted secrets safely into version control using AES-256-GCM authenticated encryption and Argon2id key derivation.
 
 ## Features
 
-- 🔐 **XChaCha20-Poly1305**: AEAD authenticated encryption with per-value nonces
+- 🔐 **AES-256-GCM**: AEAD authenticated encryption with per-value nonces
 - 🔑 **Argon2id KDF**: Modern password-based key derivation (with scrypt fallback)
 - 📦 **Library + CLI**: Use as npm module or command-line tool
 - 🎯 **Zero-disk plaintext**: Secrets never touch disk unless explicitly written
@@ -119,10 +119,10 @@ const { valid } = envx.verify('.envx');
 
 ### Cryptography
 
-**Encryption:** XChaCha20-Poly1305
+**Encryption:** AES-256-GCM
 
 - AEAD cipher with 256-bit keys
-- 24-byte random nonce per value
+- 12-byte (96-bit) random nonce per value
 - Detects ciphertext tampering
 
 **Key Derivation:** Argon2id (primary) / scrypt (fallback)
@@ -140,7 +140,7 @@ const { valid } = envx.verify('.envx');
 ```json
 {
   "version": 1,
-  "cipher": "xchacha20-poly1305",
+  "cipher": "aes-256-gcm",
   "kdf": {
     "type": "argon2id",
     "salt": "base64...",

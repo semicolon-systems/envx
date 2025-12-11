@@ -57,8 +57,8 @@ Command-line interface using Commander.js
 Cryptographic primitives
 
 - **kdf.ts**: Key derivation (Argon2id, scrypt)
-- **encrypt.ts**: XChaCha20-Poly1305 encryption
-- **decrypt.ts**: XChaCha20-Poly1305 decryption
+- **encrypt.ts**: AES-256-GCM encryption
+- **decrypt.ts**: AES-256-GCM decryption
 
 ### `/src/format/`
 
@@ -106,8 +106,8 @@ Parse KEY=VALUE pairs
 Load encryption key from .envx.key
     ↓
 For each value:
-  • Generate random 24-byte nonce
-  • Encrypt with XChaCha20-Poly1305
+  • Generate random 12-byte nonce
+  • Encrypt with AES-256-GCM
   • Store base64(nonce) and base64(ciphertext)
     ↓
 Build EnvxFile JSON
@@ -129,7 +129,7 @@ Load encryption key from .envx.key
 For each encrypted value:
   • Decode base64 nonce
   • Decode base64 ciphertext
-  • Decrypt with XChaCha20-Poly1305
+  • Decrypt with AES-256-GCM
   • Verify MAC (detects tampering)
     ↓
 Return plaintext dict
@@ -164,14 +164,14 @@ Supports future algorithm migration:
 ```json
 {
   "version": 1,
-  "cipher": "xchacha20-poly1305",
+  "cipher": "aes-256-gcm",
   "kdf": { "type": "argon2id", ... }
 }
 ```
 
 **v1.0**:
 
-- Cipher: XChaCha20-Poly1305
+- Cipher: AES-256-GCM
 - KDF: Argon2id + scrypt
 
 **Future versions** (if standards evolve):
@@ -235,11 +235,10 @@ All errors:
 
 ### Runtime
 
-- **libsodium-wrappers**: XChaCha20-Poly1305
-- **argon2**: Argon2id KDF
+- **crypto (Node.js)**: AES-256-GCM encryption
+- **@noble/hashes**: Argon2id and scrypt KDF
 - **commander**: CLI framework
 - **ajv**: JSON Schema validation
-- **dotenv**: .env parsing (for examples)
 
 ### Development
 
