@@ -21,34 +21,36 @@ envx is designed to protect secrets in Git repositories from casual exposure.
 
 ## Cryptographic Choices
 
-### Why XChaCha20-Poly1305?
+### Encryption
 
-- **Modern AEAD**: Authenticated encryption prevents tampering
-- **Long nonce**: 24-byte nonces enable random generation per value without collision risk
-- **Fast**: Stream cipher (no block size limitations)
-- **No padding oracle**: Unlike block ciphers with PKCS#7
-- **libsodium-backed**: Audited, widely-used implementation
+- Algorithm: AES-256-GCM (AEAD)
+- Key size: 256 bits
+- Nonce size: 96 bits (12 bytes), generated per value to prevent reuse
+- Authentication tag: 128 bits (16 bytes)
 
-### Why Argon2id?
+AES-GCM is a well-understood, widely available AEAD cipher that provides confidentiality and integrity. Using a unique random 12-byte nonce per value prevents nonce reuse attacks.
 
-- **Memory-hard**: Resists GPU/ASIC attacks
-- **Time-cost**: Tuneable iteration count
-- **Side-channel resistant**: Designed to prevent timing attacks
-- **Modern standard**: Winner of Password Hashing Competition
-- **Fallback scrypt**: For older systems if needed
+### Key Derivation: Argon2id and scrypt
+
+We use Argon2id as the primary KDF and scrypt as an optional fallback when Argon2 is unavailable.
+
+- Argon2id (recommended): memory=65536 KB, time=3, parallelism=1
+- scrypt (fallback): N=32768, r=8, p=1, dkLen=32
+
+Both choices are tuned for reasonable performance while providing resistance to GPU and ASIC attacks. Argon2id provides additional resistance to side-channel attacks.
 
 ## Key Rotation
 
-When rotating keys:
+Key rotation should be performed carefully to avoid leaving plaintext or duplicates of keys:
 
-1. Generate new key: `envx init --key .envx.key.new`
-2. Decrypt with old key, re-encrypt with new key
-3. Replace old key with new key atomically
-4. Securely destroy old key (if no longer needed)
+1. Initialize a new key file using `envx init --key <new-key-path>` (created with 0600 permissions).
+2. Use `envx rotate` to re-encrypt the `.envx` file with the new key.
+3. Verify the rotated file and replace the old key atomically.
+4. Securely delete the old key file when it is no longer needed.
 
 ## Buffer Wiping
 
-We wipe sensitive buffers using `Buffer.fill(0)`. This is **not a guarantee** against:
+We wipe sensitive in-memory buffers using `Buffer.fill(0)` to reduce the window in which secrets exist in memory. This is a mitigation, not a guarantee — it cannot protect against:
 
 - Speculative execution attacks (spectre-style)
 - Hypervisor memory introspection
@@ -76,7 +78,7 @@ Mitigations:
 
 ## Audit Log
 
-- **v1.0.0** (2025-01-01): Initial release, XChaCha20-Poly1305 + Argon2id
+- **v1.0.0** (2025-01-01): Initial release — AES-256-GCM + Argon2id
 
 ## Reporting Vulnerabilities
 

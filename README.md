@@ -47,11 +47,12 @@ For password-based key derivation:
 envx init --mode password
 ```
 
-You'll be prompted for a password (minimum 12 characters).
+You'll be prompted for a password (minimum 12 characters). Input is hidden and the CLI will not display raw salts or secrets.
+
 
 ### Encrypt
 
-Encrypt your `.env` file:
+Encrypt your `.env` file (original file remains unchanged):
 
 ```bash
 envx encrypt .env
@@ -61,7 +62,7 @@ This creates `.envx` containing encrypted values. The `.envx` file is safe to co
 
 ### Decrypt & Use
 
-Display decrypted values:
+Display decrypted values (avoid `--write` unless strictly necessary):
 
 ```bash
 envx show .envx

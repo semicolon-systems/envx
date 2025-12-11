@@ -27,7 +27,8 @@ export class Envx {
 
     if (mode === 'random') {
       const key = randomBytes(32);
-      writeFileSync(this.keyPath, key, { mode: 0o600 });
+      // Use exclusive create to avoid TOCTOU file overwrite attacks
+      writeFileSync(this.keyPath, key, { mode: 0o600, flag: 'wx' });
       wipeBuffer(key);
       logger.info('Initialized random key');
       return { keyPath: this.keyPath };
@@ -38,7 +39,8 @@ export class Envx {
     }
 
     const { key, salt, meta: kdfMeta } = await deriveKey(password, 'argon2id');
-    writeFileSync(this.keyPath, key, { mode: 0o600 });
+    // Use exclusive create when writing derived key file
+    writeFileSync(this.keyPath, key, { mode: 0o600, flag: 'wx' });
     wipeBuffer(key);
     logger.info('Initialized password-derived key');
     return { keyPath: this.keyPath, salt: salt.toString('base64'), kdfMeta };
@@ -138,7 +140,8 @@ export class Envx {
     const plaintext = await this.decrypt(envxPath);
 
     const newKey = randomBytes(32);
-    writeFileSync(newKeyPath, newKey, { mode: 0o600 });
+    // Create the new key file exclusively to avoid overwrites by race conditions
+    writeFileSync(newKeyPath, newKey, { mode: 0o600, flag: 'wx' });
 
     const oldKeyPath = this.keyPath;
     this.keyPath = newKeyPath;

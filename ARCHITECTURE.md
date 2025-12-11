@@ -27,8 +27,8 @@ Cryptographic operations for encryption and key derivation.
   - Argon2id: 64MB memory, 3 iterations, resistant to GPU and side-channel attacks
   - scrypt: N=2^15, r=8, p=1 (fallback)
 
-- **`memory.ts`**: Secure memory operations
-  - Function: `wipeBuffer()` fills buffers with zeros to prevent memory leaks
+-- **`utils/memory.ts`**: Secure memory operations
+  - Functions: `wipeBuffer()`, `wipeBuffers()`, `wipeRecord()` used to clear sensitive buffers and reduce exposure
 
 #### `src/lib/`
 

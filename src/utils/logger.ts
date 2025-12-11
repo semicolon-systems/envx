@@ -1,3 +1,10 @@
+/*
+ * Structured, safe logger for envx.
+ * - Emits compact JSON logs with timestamp, level and message.
+ * - Automatically sanitizes context to avoid including secrets (keys, salts, nonces, passwords etc.).
+ * - Keeps a simple public API compatible with the previous implementation.
+ */
+
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 export interface Logger {
@@ -7,52 +14,50 @@ export interface Logger {
   error(message: string, context?: Record<string, unknown>): void;
 }
 
-class ConsoleLogger implements Logger {
-  private minLevel: LogLevel;
-  private levels: Record<LogLevel, number> = {
-    debug: 0,
-    info: 1,
-    warn: 2,
-    error: 3,
-  };
+const levels: Record<LogLevel, number> = { debug: 0, info: 1, warn: 2, error: 3 };
+const minLevel = (process.env.LOG_LEVEL as LogLevel) || 'info';
 
-  constructor(minLevel: LogLevel = 'info') {
-    this.minLevel = minLevel;
-  }
+const sensitiveKeyPatterns = [/password/i, /passphrase/i, /secret/i, /key$/i, /salt/i, /nonce/i, /iv/i, /tag/i, /cipher/i, /ciphertext/i, /value/i];
 
-  private shouldLog(level: LogLevel): boolean {
-    return this.levels[level] >= this.levels[this.minLevel];
-  }
-
-  private format(level: LogLevel, message: string, context?: Record<string, unknown>): string {
-    const timestamp = new Date().toISOString();
-    const ctx = context ? ` ${JSON.stringify(context)}` : '';
-    return `[${timestamp}] ${level.toUpperCase()}: ${message}${ctx}`;
-  }
-
-  debug(message: string, context?: Record<string, unknown>): void {
-    if (this.shouldLog('debug')) {
-      console.debug(this.format('debug', message, context));
+function sanitizeContext(ctx?: Record<string, unknown>): Record<string, unknown> | undefined {
+  if (!ctx) return undefined;
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(ctx)) {
+    const isSensitive = sensitiveKeyPatterns.some((rx) => rx.test(k));
+    if (isSensitive) {
+      out[k] = '[REDACTED]';
+      continue;
     }
-  }
-
-  info(message: string, context?: Record<string, unknown>): void {
-    if (this.shouldLog('info')) {
-      console.info(this.format('info', message, context));
+    // Avoid printing Buffers or large binary data
+    if (v instanceof Buffer) {
+      out[k] = '[REDACTED_BUFFER]';
+      continue;
     }
+    out[k] = v;
   }
-
-  warn(message: string, context?: Record<string, unknown>): void {
-    if (this.shouldLog('warn')) {
-      console.warn(this.format('warn', message, context));
-    }
-  }
-
-  error(message: string, context?: Record<string, unknown>): void {
-    if (this.shouldLog('error')) {
-      console.error(this.format('error', message, context));
-    }
-  }
+  return Object.keys(out).length ? out : undefined;
 }
 
-export const logger: Logger = new ConsoleLogger((process.env.LOG_LEVEL as LogLevel) || 'info');
+function emit(level: LogLevel, message: string, context?: Record<string, unknown>): void {
+  if (levels[level] < levels[minLevel]) return;
+  const entry: Record<string, unknown> = {
+    timestamp: new Date().toISOString(),
+    level,
+    message,
+  };
+  const ctx = sanitizeContext(context);
+  if (ctx) entry.context = ctx;
+  const out = JSON.stringify(entry);
+  // Use console methods so output is visible in tests and CI; keep minimal/no secrets
+  if (level === 'error') console.error(out);
+  else if (level === 'warn') console.warn(out);
+  else if (level === 'info') console.info(out);
+  else console.debug(out);
+}
+
+export const logger: Logger = {
+  debug: (m, c) => emit('debug', m, c),
+  info: (m, c) => emit('info', m, c),
+  warn: (m, c) => emit('warn', m, c),
+  error: (m, c) => emit('error', m, c),
+};
